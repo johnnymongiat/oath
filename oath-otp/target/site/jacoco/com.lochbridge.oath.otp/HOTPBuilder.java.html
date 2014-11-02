@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>HOTPBuilder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">OATH OTP</a> &gt; <a href="index.source.html" class="el_package">com.lochbridge.oath.otp</a> &gt; <span class="el_source">HOTPBuilder.java</span></div><h1>HOTPBuilder.java</h1><pre class="source lang-java linenums">package com.lochbridge.oath.otp;
+
+import java.lang.reflect.UndeclaredThrowableException;
+import java.security.GeneralSecurityException;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Range;
+
+/**
+ * A HMAC-based One-time Password (HOTP) builder. 
+ * &lt;p&gt;
+ * This is an implementation of the OATH HOTP algorithm as described by RFC 4226. This implementation supports sequence/counter-based 
+ * moving factors, and numeric-only HOTP values ranging from size 6 to 8 (inclusive). Clients are recommended to use a shared secret 
+ * key length of 160 bits.
+ * &lt;/p&gt;
+ * &lt;p&gt;
+ * The builder, obtained via a call to the static {@code key(...)} method on {@link HOTP}, provides methods for configuring the HOTP 
+ * generation parameters. Once the HOTP configuration is prepared, the builder is used to build an {@link HOTP} using the 
+ * {@code build()} method:
+ * &lt;/p&gt;
+ * &lt;pre&gt;
+ *   String sharedSecretKey = &quot;12345678901234567890&quot;; // We use the recommended 160-bit (20 bytes) length keys
+ *   byte[] key = sharedSecretKey.getBytes(Charsets.US_ASCII);
+ *   
+ *   // Generate a 6-digit HOTP using an arbitrary moving factor of 5.
+ *   HOTP hotp = HOTP.key(key).digits(6).movingFactor(5).build();
+ *   // prints &quot;254676&quot;
+ *   System.out.println(hotp.value());
+ * &lt;/pre&gt;
+ *
+ * @author Loren Hart
+ * @author Johnny Mongiat
+ * 
+ * @see http://tools.ietf.org/html/rfc4226
+ */
+public final class HOTPBuilder {
+	
+	/** The default number of digits the TOTP value contains. */
+	public static final int DEFAULT_DIGITS = 6;
+	
+	/** The minimum allowed number of digits the HOTP value can contain. */
+	public static final int MIN_ALLOWED_DIGITS = 6;
+	
+	/** The maximum allowed number of digits the HOTP value can contain. */
+	public static final int MAX_ALLOWED_DIGITS = 8;
+    
+    /** The shared secret key. */
+    private final byte[] key;
+    
+    /** The moving factor (defaults to 0). */
+<span class="fc" id="L55">    private long movingFactor = 0;</span>
+    
+    /** The number of digits the HOTP value contains (defaults to {@link #DEFAULT_DIGITS}). */
+<span class="fc" id="L58">    private int digits = DEFAULT_DIGITS;</span>
+    
+    /**
+     * Creates a new instance of {@code HOTPBuilder} initialised with a shared secret key.
+     * 
+     * @param key the shared secret key. The contents of the array are copied to protect against subsequent modification.
+     * 
+     * @throws NullPointerException if {@code key} is {@code null}.
+     */
+<span class="fc" id="L67">	HOTPBuilder(byte[] key) {</span>
+<span class="fc" id="L68">		Preconditions.checkNotNull(key);</span>
+<span class="fc" id="L69">		this.key = new byte[key.length];</span>
+<span class="fc" id="L70">		System.arraycopy(key, 0, this.key, 0, key.length);</span>
+<span class="fc" id="L71">	}</span>
+	
+	/**
+	 * Returns this {@code HOTPBuilder} instance initialised with the specified {@code movingFactor}.
+	 * 
+	 * @param movingFactor the moving factor
+	 * 
+	 * @return this {@code TOTPBuilder} instance initialised with the specified {@code movingFactor}.
+	 * 
+	 * @throws IllegalArgumentException if {@code movingFactor} is &lt; 0.
+	 */
+	public HOTPBuilder movingFactor(long movingFactor) {
+<span class="fc bfc" id="L83" title="All 2 branches covered.">		Preconditions.checkArgument(movingFactor &gt;= 0);</span>
+<span class="fc" id="L84">		this.movingFactor = movingFactor;</span>
+<span class="fc" id="L85">		return this;</span>
+	}
+	
+	/**
+	 * Returns this {@code HOTPBuilder} instance initialised with the specified {@code digits}.
+	 * 
+	 * @param digits the number of digits the generated HOTP value should contain 
+	 *        (must be between {@link #MIN_ALLOWED_DIGITS} and {@link #MAX_ALLOWED_DIGITS} inclusive)
+	 *        
+	 * @return this {@code HOTPBuilder} instance initialised with the specified {@code digits}.
+	 * 
+	 * @throws IllegalArgumentException if {@code digits} is not in [{@link #MIN_ALLOWED_DIGITS}, {@link #MAX_ALLOWED_DIGITS}].
+	 */
+	public HOTPBuilder digits(int digits) {
+<span class="fc" id="L99">		Preconditions.checkArgument(Range.closed(MIN_ALLOWED_DIGITS, MAX_ALLOWED_DIGITS).contains(digits));</span>
+<span class="fc" id="L100">		this.digits = digits;</span>
+<span class="fc" id="L101">		return this;</span>
+	}
+	
+	/**
+	 * Build a HMAC-based One-time Password {@link HOTP} using the key, digits, and moving factor values contained in this builder.
+	 * Note that the builder instance can be reused for subsequent configuration/generation calls.
+	 * 
+	 * @return a HMAC-based One-time Password {@link HOTP} instance.
+	 */
+	public HOTP build() {
+		// Put movingFactor value into text byte array (but first copy the movingFactor to keep internal state of this builder unchanged).
+<span class="fc" id="L112">		long theMovingFactor = movingFactor;</span>
+<span class="fc" id="L113">        byte[] text = new byte[8];</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        for (int i = text.length - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L115">            text[i] = (byte) (theMovingFactor &amp; 0xff);</span>
+<span class="fc" id="L116">            theMovingFactor &gt;&gt;= 8;</span>
+        }
+
+		// Step 1: Generate the HMAC-SHA-1 hash.
+<span class="fc" id="L120">		byte[] hash = computeHmacSha1(key, text);</span>
+
+		// Step 2: Dynamic Truncation as per section 5.3 of RFC 4226.
+		//   - &quot;... Let OffsetBits be the low-order 4 bits of String[19] (where String = String[0]...String[19]) ...&quot;
+		//   - &quot;... Let P = String[OffSet]...String[OffSet+3] ... Return the Last 31 bits of P ...&quot;
+<span class="fc" id="L125">		int offset = hash[hash.length - 1] &amp; 0xf;</span>
+<span class="fc" id="L126">		int binary = ((hash[offset] &amp; 0x7f) &lt;&lt; 24) | ((hash[offset + 1] &amp; 0xff) &lt;&lt; 16) | ((hash[offset + 2] &amp; 0xff) &lt;&lt; 8) | (hash[offset + 3] &amp; 0xff);</span>
+
+		// Step 3: Compute the HOTP value, and ensure it contains the configured number of digits.
+<span class="fc" id="L129">		int otp = binary % ((int) Math.pow(10, digits));</span>
+<span class="fc" id="L130">		String hotp = Strings.padStart(Integer.toString(otp), digits, '0');</span>
+		
+<span class="fc" id="L132">		return new HOTP(hotp, digits, movingFactor);</span>
+	}
+	
+	/**
+	 * Returns the HMAC-SHA-1 hash with {@code keyBytes} as the key, and {@code text} as the message.
+	 *
+	 * @param keyBytes the bytes to use for the HMAC key
+	 * @param text the message or text to be authenticated
+	 * 
+	 * @return the HMAC-SHA-1 hash with {@code keyBytes} as the key, and {@code text} as the message.
+	 */
+	private byte[] computeHmacSha1(byte[] keyBytes, byte[] text) {
+		try {
+<span class="fc" id="L145">			Mac hmac = Mac.getInstance(HmacShaAlgorithm.HMAC_SHA_1.getAlgorithm());</span>
+<span class="fc" id="L146">			SecretKeySpec macKey = new SecretKeySpec(keyBytes, &quot;RAW&quot;);</span>
+<span class="fc" id="L147">			hmac.init(macKey);</span>
+<span class="fc" id="L148">			return hmac.doFinal(text);</span>
+<span class="nc" id="L149">		} catch (GeneralSecurityException gse) {</span>
+<span class="nc" id="L150">			throw new UndeclaredThrowableException(gse);</span>
+		}
+	}
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span></div></body></html>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TOTPValidator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">OATH OTP</a> &gt; <a href="index.source.html" class="el_package">com.lochbridge.oath.otp</a> &gt; <span class="el_source">TOTPValidator.java</span></div><h1>TOTPValidator.java</h1><pre class="source lang-java linenums">package com.lochbridge.oath.otp;
+
+import com.google.common.base.Preconditions;
+
+/**
+ * A Time-based One-time Password (TOTP) validator.
+ *   
+ * &lt;p&gt;
+ * As per RFC 6238 (section 5.2):
+ * &lt;/p&gt;
+ * &lt;p&gt;
+ * &quot;An OTP generated within the same time step will be the same.  When an OTP is received at a validation system, it doesn't know a client's
+ * exact timestamp when an OTP was generated.  The validation system may typically use the timestamp when an OTP is received for OTP
+ * comparison.  Due to network latency, the gap (as measured by T, that is, the number of time steps since T0) between the time that the OTP
+ * was generated and the time that the OTP arrives at the receiving system may be large.  The receiving time at the validation system and
+ * the actual OTP generation may not fall within the same time-step window that produced the same OTP.  When an OTP is generated at the end 
+ * of a time-step window, the receiving time most likely falls into the next time-step window.  A validation system SHOULD typically set a policy 
+ * for an acceptable OTP transmission delay window for validation.  The validation system should compare OTPs not only with the receiving timestamp 
+ * but also the past timestamps that are within the transmission delay.  A larger acceptable delay window would expose a larger window for attacks.  
+ * We RECOMMEND that at most one time step is allowed as the network delay.&quot;
+ * &lt;/p&gt;
+ * 
+ * &lt;p&gt;Example:&lt;/p&gt;
+ * &lt;pre&gt;
+ *   final long time = System.currentTimeMillis(); // We will let the TOTP generation time == TOTP validation time so validation will succeed.
+ *   byte[] key = &quot;...&quot;;
+ *   TOTP totp = TOTP.key(key).build(time);
+ *   boolean valid = TOTPValidator.window(0).isValid(key, totp.timeStep(), totp.digits(), totp.hmacShaAlgorithm(), totp.value(), time);
+ *   // Should print &quot;TOTP = ..., valid = true&quot;
+ *   System.out.printf(&quot;TOTP = %s, valid = %s%n&quot;, totp.value(), valid);
+ * &lt;/pre&gt;
+ * 
+ * @author Johnny Mongiat
+ *
+ * @see https://tools.ietf.org/html/rfc6238#section-5.2
+ */
+public final class TOTPValidator {
+	
+	/** The default window verification size. */
+	public static final int DEFAULT_WINDOW = 1;
+	
+	private final int window;
+	
+	/**
+	 * Creates a new instance of {@code TOTPValidator} initialised with the specified {@code window} verification size.
+	 * 
+	 * @param window the window verification size
+	 * 
+	 * @throws IllegalArgumentException if {@code window} is &lt; 0.
+	 */
+<span class="fc" id="L51">	private TOTPValidator(int window) {</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">		Preconditions.checkArgument(window &gt;= 0);</span>
+<span class="fc" id="L53">		this.window = window;</span>
+<span class="fc" id="L54">	}</span>
+	
+	/**
+     * Returns a new {@link TOTPValidator} instance initialised with the {@link #DEFAULT_WINDOW} verification size.
+     * 
+     * @return a new {@link TOTPValidator} instance.
+     */
+	public static TOTPValidator defaultWindow() {
+<span class="fc" id="L62">		return window(DEFAULT_WINDOW);</span>
+	}
+	
+	/**
+     * Returns a new {@link TOTPValidator} instance initialised with the specified {@code window} verification size.
+     * 
+     * @param window the window verification size
+     * 
+     * @return a new {@link TOTPValidator} instance.
+     * 
+     * @throws IllegalArgumentException if {@code window} is &lt; 0.
+     */
+	public static TOTPValidator window(int window) {
+<span class="fc" id="L75">		return new TOTPValidator(window);</span>
+	}
+
+	/**
+	 * Returns {@code true} if the specified TOTP {@code value} matches the value of the TOTP generated at validation,
+	 * otherwise {@code false}. The current system time (current time in milliseconds since the UNIX epoch) is used as the validation
+	 * reference time.
+	 * 
+	 * @param key the shared secret key
+	 * @param timeStep the time step size in milliseconds
+	 * @param digits the number of digits a TOTP should contain
+	 * @param hmacShaAlgorithm {@link HmacShaAlgorithm}
+	 * @param value the TOTP value to validate
+	 * 
+	 * @return {@code true} if the specified TOTP {@code code} value matches the code value of the TOTP generated at validation, otherwise {@code false}.
+	 */
+	public boolean isValid(byte[] key, long timeStep, int digits, HmacShaAlgorithm hmacShaAlgorithm, String value) {
+<span class="fc" id="L92">		return isValid(key, timeStep, digits, hmacShaAlgorithm, value, System.currentTimeMillis()) ;</span>
+	}
+	
+	/**
+	 * Returns {@code true} if the specified TOTP {@code value} matches the value of the TOTP generated at validation,
+	 * otherwise {@code false}.
+	 * 
+	 * @param key the Base 32 encoded shared secret key
+	 * @param timeStep the time step size in milliseconds
+	 * @param digits the number of digits a TOTP should contain
+	 * @param hmacShaAlgorithm {@link HmacShaAlgorithm}
+	 * @param value the TOTP value to validate
+	 * @param validationTime the validation reference time in milliseconds
+	 * 
+	 * @return {@code true} if the specified TOTP {@code code} value matches the code value of the TOTP generated at validation, otherwise {@code false}.
+	 */
+	public boolean isValid(byte[] key, long timeStep, int digits, HmacShaAlgorithm hmacShaAlgorithm, String value, long validationTime) {
+<span class="fc" id="L109">		boolean result = false;</span>
+<span class="fc" id="L110">		TOTPBuilder builder = TOTP.key(key).timeStep(timeStep).digits(digits).hmacSha(hmacShaAlgorithm);</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        for (int i = -window; i &lt;= window; i++) {</span>
+<span class="fc" id="L112">        	final long time = validationTime + (i * timeStep);</span>
+<span class="fc" id="L113">        	final TOTP vtotp = builder.build(time);</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">            if (vtotp.value().equals(value)) {</span>
+<span class="fc" id="L115">            	result = true;</span>
+<span class="fc" id="L116">            	break;</span>
+            }
+        }
+<span class="fc" id="L119">        return result;</span>
+	}
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span></div></body></html>

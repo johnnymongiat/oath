@@ -1,0 +1,206 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.lochbridge.oath</groupId>
+	<artifactId>oath-parent</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>OATH Project</name>
+	<url>${project.oath.url}</url>
+	<description>
+        OATH provides components for building one-time password authentication systems.
+    </description>
+    
+    <properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<project.oath.url>https://github.com/johnnymongiat/oath</project.oath.url>
+		<guava.version>18.0</guava.version>
+		<com.google.zxing.version>3.1.0</com.google.zxing.version>
+		<codahale.metrics.version>3.1.0</codahale.metrics.version>
+	</properties>
+
+	<developers>
+		<developer>
+			<name>Johnny Mongiat</name>
+			<email>johnnymongiat@gmail.com</email>
+			<timezone>America/Montreal</timezone>
+			<roles>
+				<role>committer</role>
+			</roles>
+		</developer>
+	</developers>
+
+    <!--scm>
+        <connection>scm:git:git://github.com/dropwizard/dropwizard.git</connection>
+        <developerConnection>scm:git:git@github.com:dropwizard/dropwizard.git</developerConnection>
+        <url>https://github.com/dropwizard/dropwizard</url>
+        <tag>HEAD</tag>
+    </scm-->
+    <!--scm>
+        <connection>scm:git:https://github.com/johnnymongiat/pipeline-sink-trigger-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/johnnymongiat/pipeline-sink-trigger-plugin.git</developerConnection>
+        <url>https://github.com/johnnymongiat/pipeline-sink-trigger-plugin.git</url>
+    </scm-->
+    
+    <!--issueManagement>
+        <system>github</system>
+        <url>https://github.com/johnnymongiat/pipeline-sink-trigger-plugin/issues</url>
+    </issueManagement-->
+    
+    <licenses>
+        <license>
+            <name>The MIT License (MIT)</name>
+            <url>http://opensource.org/licenses/MIT</url>
+            <distribution>manual</distribution>
+        </license>
+    </licenses>
+    
+    <profiles>
+    	<profile>
+    		<id>coverage</id>
+    		<!--properties>
+				<coverage.reports.dir>${basedir}/../coverage-reports</coverage.reports.dir>
+				<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+				<sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
+				<sonar.jacoco.reportPath>${coverage.reports.dir}/jacoco.exec</sonar.jacoco.reportPath>
+			</properties-->
+    		<build>
+    			<plugins>
+    				<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.7.2.201409121644</version>
+						<executions>
+							<execution>
+								<id>default-prepare-agent</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>default-report</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+    			</plugins>
+    		</build>
+    	</profile>
+    </profiles>
+	
+	<dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    <dependencyManagement>
+        <dependencies>
+        	<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
+			
+        	<!-- QRCode -->
+			<dependency>
+				<groupId>com.google.zxing</groupId>
+				<artifactId>core</artifactId>
+				<version>${com.google.zxing.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.zxing</groupId>
+				<artifactId>javase</artifactId>
+				<version>${com.google.zxing.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>com.codahale.metrics</groupId>
+				<artifactId>metrics-core</artifactId> 
+				<version>${codahale.metrics.version}</version>
+			</dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <additionalparam>${javadoc.doclint.none}</additionalparam>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <mavenExecutorId>forked-path</mavenExecutorId>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <preparationGoals>clean test</preparationGoals>
+                </configuration>
+            </plugin-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <modules>
+    	<module>oath-otp</module>
+    </modules>
+</project>
