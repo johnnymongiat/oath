@@ -30,23 +30,17 @@
 			</roles>
 		</developer>
 	</developers>
-
-    <!--scm>
-        <connection>scm:git:git://github.com/dropwizard/dropwizard.git</connection>
-        <developerConnection>scm:git:git@github.com:dropwizard/dropwizard.git</developerConnection>
-        <url>https://github.com/dropwizard/dropwizard</url>
-        <tag>HEAD</tag>
-    </scm-->
-    <!--scm>
-        <connection>scm:git:https://github.com/johnnymongiat/pipeline-sink-trigger-plugin.git</connection>
-        <developerConnection>scm:git:https://github.com/johnnymongiat/pipeline-sink-trigger-plugin.git</developerConnection>
-        <url>https://github.com/johnnymongiat/pipeline-sink-trigger-plugin.git</url>
-    </scm-->
+	
+    <scm>
+        <connection>scm:git:https://github.com/johnnymongiat/oath.git</connection>
+        <developerConnection>scm:git:https://github.com/johnnymongiat/oath.git</developerConnection>
+        <url>https://github.com/johnnymongiat/oath.git</url>
+    </scm>
     
-    <!--issueManagement>
+    <issueManagement>
         <system>github</system>
-        <url>https://github.com/johnnymongiat/pipeline-sink-trigger-plugin/issues</url>
-    </issueManagement-->
+        <url>https://github.com/johnnymongiat/oath/issues</url>
+    </issueManagement>
     
     <licenses>
         <license>
