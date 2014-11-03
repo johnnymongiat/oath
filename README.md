@@ -1,1 +1,18 @@
-## TODO
+## An OATH (Open Authentication) Toolkit
+
+A Java-based OATH toolkit providing components for building one-time password authentication systems. Supported technologies include the event-based HOTP algorithm ([RFC4226](https://tools.ietf.org/html/rfc4226)) and the time-based TOTP algorithm ([RFC6238](https://tools.ietf.org/html/rfc6238)).
+
+Presently, the toolkit provides the following components:
+
+* **oath-totp**: A module for generating and validating OTPs.
+
+## Examples
+
+```java
+// Generate a 6-digit HOTP using an arbitrary moving factor of 5, and a recommended 160-bit (20 bytes) length key.
+String sharedSecretKey = "12345678901234567890";
+byte[] key = sharedSecretKey.getBytes("US-ASCII");
+HOTP hotp = HOTP.key(key).digits(6).movingFactor(5).build();
+// prints "254676"
+System.out.println(hotp.value());
+```
