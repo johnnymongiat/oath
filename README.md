@@ -25,6 +25,18 @@ TOTP totp = TOTP.key(key).timeStep(TimeUnit.SECONDS.toMillis(30)).digits(8).hmac
 System.out.println("TOTP = " + totp.value());
 ```
 
+## Building
+
+You will need a Java Development Kit (1.7) and [Maven](http://maven.apache.org/).
+    
+To build:
+
+    mvn clean verify
+    
+To build and activate code coverage metrics:
+
+    mvn clean verify -Pcoverage
+
 ## License
 
 The MIT License (MIT)
