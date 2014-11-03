@@ -9,10 +9,18 @@ Presently, the toolkit provides the following components:
 ## Examples
 
 ```java
-// Generate a 6-digit HOTP using an arbitrary moving factor of 5, and a recommended 160-bit (20 bytes) length key.
+// Generate a 6-digit HOTP using an arbitrary moving factor of 5, 
+// and a recommended 160-bit (20 bytes) length key.
 String sharedSecretKey = "12345678901234567890";
 byte[] key = sharedSecretKey.getBytes("US-ASCII");
 HOTP hotp = HOTP.key(key).digits(6).movingFactor(5).build();
 // prints "254676"
 System.out.println(hotp.value());
+
+// Generate an 8-digit TOTP using a 30 second time step, HMAC-SHA-512,
+// and a 64 byte shared secret key.
+String sharedSecretKey = "1234567890123456789012345678901234567890123456789012345678901234";
+byte[] key = sharedSecretKey.getBytes("US-ASCII");
+TOTP totp = TOTP.key(key).timeStep(TimeUnit.SECONDS.toMillis(30)).digits(8).hmacSha512().build();
+System.out.println("TOTP = " + totp.value());
 ```
