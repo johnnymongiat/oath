@@ -4,7 +4,7 @@ A Java-based OATH toolkit providing components for building one-time password au
 
 Presently, the toolkit provides the following components:
 
-* **oath-totp**: A module for generating and validating OTPs.
+* **oath-otp**: A module for generating and validating OTPs.
 
 ## Examples
 
