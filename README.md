@@ -24,3 +24,7 @@ byte[] key = sharedSecretKey.getBytes("US-ASCII");
 TOTP totp = TOTP.key(key).timeStep(TimeUnit.SECONDS.toMillis(30)).digits(8).hmacSha512().build();
 System.out.println("TOTP = " + totp.value());
 ```
+
+## License
+
+The MIT License (MIT)
