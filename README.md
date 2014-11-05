@@ -7,7 +7,7 @@ Presently, the toolkit provides the following components:
 * **oath-otp**: A module for generating and validating OTPs.
 * **oath-otp-keyprovisioning**: A module for providing OTP key provisioning support.
 
-## Examples
+## Examples of Generating/Validating HOTP/TOTP(s)
 
 ```java
 // Generate a 6-digit HOTP using an arbitrary moving factor of 5, 
@@ -67,6 +67,27 @@ if (totp.value().equals(clientTOTP)) {
 boolean valid = TOTPValidator.window(1).isValid(key, TimeUnit.SECONDS.toMillis(30), 6, 
     HmacShaAlgorithm.HMAC_SHA_1, clientTOTP);
 ```
+
+## Example of Generating a QR Code Image
+
+```java
+String secretKey = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"; // base32 encoded key.
+OTPKey key = new OTPKey(secretKey, OTPType.TOTP);
+String issuer = "Acme Corporation";
+String label = issuer + ":Alice Smith";
+
+// Create the OTP Auth URI. 
+OTPAuthURI uri = OTPAuthURIBuilder.key(key).issuer(issuer).digits(6).timeStep(30000L).build(label, true);
+System.out.println(uri.toUriString());
+System.out.println(uri.toPlainTextUriString());
+
+// Render a QR Code into a file.
+File file = new File("path/to/qrcode.png");
+QRCodeWriter.fromURI(uri).width(300).height(300).errorCorrectionLevel(ErrorCorrectionLevel.H)
+    .margin(4).imageFormatName("PNG").write(file.toPath());
+```
+
+![QRCodeScreenshot](misc/qrcode.png)
 
 ## Building
 
