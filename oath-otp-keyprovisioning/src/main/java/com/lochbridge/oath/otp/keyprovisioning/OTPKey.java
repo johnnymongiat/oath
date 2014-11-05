@@ -52,10 +52,10 @@ public final class OTPKey {
     public static enum OTPType {
 
         /** {@code HOTP} */
-        HOTP("hotp"),
+        HOTP("HOTP"),
 
         /** {@code TOTP} */
-        TOTP("totp");
+        TOTP("TOTP");
 
         private final String name;
 
