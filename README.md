@@ -87,7 +87,7 @@ QRCodeWriter.fromURI(uri).width(300).height(300).errorCorrectionLevel(ErrorCorre
     .margin(4).imageFormatName("PNG").write(file.toPath());
 ```
 
-otpauth://totp/Acme%20Corporation:Alice%20Smith?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&issuer=Acme%20Corporation&digits=6&period=30
+    otpauth://totp/Acme%20Corporation:Alice%20Smith?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&issuer=Acme%20Corporation&digits=6&period=30
 
 ![QRCodeScreenshot](misc/qrcode.png)
 
