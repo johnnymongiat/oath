@@ -6,7 +6,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>OATH Project</name>
-	<url>${project.oath.url}</url>
+	<url>https://github.com/johnnymongiat/oath</url>
 	<description>
         OATH provides components for building one-time password authentication systems.
     </description>
@@ -14,7 +14,6 @@
     <properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<project.oath.url>https://github.com/johnnymongiat/oath</project.oath.url>
 		<guava.version>18.0</guava.version>
 		<codahale.metrics.version>3.1.0</codahale.metrics.version>
 	</properties>
@@ -54,15 +53,10 @@
         </license>
     </licenses>
     
-    <profiles>
+    <!-- TODO remove once coveralls integration is working -->
+    <!--profiles>
     	<profile>
     		<id>coverage</id>
-    		<!--properties>
-				<coverage.reports.dir>${basedir}/../coverage-reports</coverage.reports.dir>
-				<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-				<sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
-				<sonar.jacoco.reportPath>${coverage.reports.dir}/jacoco.exec</sonar.jacoco.reportPath>
-			</properties-->
     		<build>
     			<plugins>
     				<plugin>
@@ -85,10 +79,15 @@
 							</execution>
 						</executions>
 					</plugin>
+					<plugin>
+                        <groupId>org.eluder.coveralls</groupId>
+                        <artifactId>coveralls-maven-plugin</artifactId>
+                        <version>3.0.1</version>
+                    </plugin>
     			</plugins>
     		</build>
     	</profile>
-    </profiles>
+    </profiles-->
 	
 	<dependencies>
         <dependency>
@@ -184,6 +183,31 @@
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+	            <groupId>org.jacoco</groupId>
+	            <artifactId>jacoco-maven-plugin</artifactId>
+	            <version>0.7.2.201409121644</version>
+	            <executions>
+	                <execution>
+	                    <id>default-prepare-agent</id>
+	                    <goals>
+	                        <goal>prepare-agent</goal>
+	                    </goals>
+	                </execution>
+	                <execution>
+	                    <id>default-report</id>
+	                    <phase>prepare-package</phase>
+	                    <goals>
+	                        <goal>report</goal>
+	                    </goals>
+	                </execution>
+	            </executions>
+	        </plugin>
+	        <plugin>
+	            <groupId>org.eluder.coveralls</groupId>
+	            <artifactId>coveralls-maven-plugin</artifactId>
+	            <version>3.0.1</version>
+	        </plugin>
         </plugins>
     </build>
     <modules>
