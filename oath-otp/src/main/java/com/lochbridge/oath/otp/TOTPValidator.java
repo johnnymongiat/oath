@@ -6,7 +6,7 @@ import com.google.common.base.Preconditions;
  * A Time-based One-time Password (TOTP) validator.
  * 
  * <p>
- * As per RFC 6238 (section 5.2):
+ * As per <a href="https://tools.ietf.org/html/rfc6238#section-5.2">RFC 6238 (section 5.2)</a>:
  * </p>
  * <p>
  * "An OTP generated within the same time step will be the same. When an OTP is
@@ -43,7 +43,7 @@ import com.google.common.base.Preconditions;
  * 
  * @author Johnny Mongiat
  *
- * @see https://tools.ietf.org/html/rfc6238#section-5.2
+ * @see <a href="https://tools.ietf.org/html/rfc6238#section-5.2">RFC 6238 (section 5.2)</a>
  */
 public final class TOTPValidator {
 
@@ -100,7 +100,7 @@ public final class TOTPValidator {
      * is used as the validation reference time.
      * 
      * @param key
-     *            the shared secret key
+     *            the encoded shared secret key
      * @param timeStep
      *            the time step size in milliseconds
      * @param digits
@@ -123,7 +123,7 @@ public final class TOTPValidator {
      * value of the TOTP generated at validation, otherwise {@code false}.
      * 
      * @param key
-     *            the Base 32 encoded shared secret key
+     *            the encoded shared secret key
      * @param timeStep
      *            the time step size in milliseconds
      * @param digits

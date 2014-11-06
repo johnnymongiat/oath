@@ -17,7 +17,32 @@ byte[] key = sharedSecretKey.getBytes("US-ASCII");
 HOTP hotp = HOTP.key(key).digits(6).movingFactor(5).build();
 // prints "254676"
 System.out.println(hotp.value());
+```
 
+```java
+// Example of validate a client submitted HOTP.
+// Assume the current moving factor of the given client's HOTP is 5, and HOTP's are 6-digits.
+String clientHOTPValue = "..."; // The client's HOTP value as received by the authentication server.
+byte[] key = ...; // The client's shared secret key.
+long currentMovingFactor = 5; // The client's current moving factor as determined by the authentication server.
+
+// Configure a validator to look-ahead an additional 2 times.
+HOTPValidationResult result = HOTPValidator.lookAheadWindow(2).validate(key, currentMovingFactor, 6, clientHOTPValue);
+if (result.isValid()) {
+    // Validation has succeeded, so the authentication server would need to update the client's current moving factor
+    // mapping so that subsequent validation requests reference this new/updated value. the new/updated value is
+    // captured in the returned HOTPValidationResult via the getNewMovingFactor() method.
+    updateMovingFactorForClient(...., result.getNewMovingFactor());
+    return;
+}
+// Validation failed, so the authentication server should ask for another authentication pass of the HOTP validation
+// protocol, until the maximum number of authorized attempts (throttling parameter) is reached. Once the maximum number 
+// of authorized attempts has been reached, the authentication server should lock out the client's account, and initiate
+// a procedure to inform the user.
+throw new Exception("HOTP validation attempt failed");
+```
+
+```java
 // Generate an 8-digit TOTP using a 30 second time step, HMAC-SHA-512,
 // and a 64 byte shared secret key.
 String sharedSecretKey = "1234567890123456789012345678901234567890123456789012345678901234";

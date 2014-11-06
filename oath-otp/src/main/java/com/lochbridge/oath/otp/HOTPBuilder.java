@@ -1,6 +1,7 @@
 package com.lochbridge.oath.otp;
 
 import java.lang.reflect.UndeclaredThrowableException;
+import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 
 import javax.crypto.Mac;
@@ -130,14 +131,8 @@ public final class HOTPBuilder {
      * @return a HMAC-based One-time Password {@link HOTP} instance.
      */
     public HOTP build() {
-        // Put movingFactor value into text byte array (but first copy the
-        // movingFactor to keep internal state of this builder unchanged).
-        long theMovingFactor = movingFactor;
-        byte[] text = new byte[8];
-        for (int i = text.length - 1; i >= 0; i--) {
-            text[i] = (byte) (theMovingFactor & 0xff);
-            theMovingFactor >>= 8;
-        }
+        // Put movingFactor value into text byte array.
+        byte[] text = ByteBuffer.allocate(8).putLong(movingFactor).array();
 
         // Step 1: Generate the HMAC-SHA-1 hash.
         byte[] hash = computeHmacSha1(key, text);

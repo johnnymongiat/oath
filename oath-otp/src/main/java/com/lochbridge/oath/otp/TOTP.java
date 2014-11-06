@@ -6,7 +6,7 @@ package com.lochbridge.oath.otp;
  * Refer to {@link TOTPBuilder} on how to generate a {@code TOTP}.
  * </p>
  * 
- * @see https://tools.ietf.org/html/rfc6238
+ * @see <a href="https://tools.ietf.org/html/rfc6238">RFC 6238</a>
  */
 public final class TOTP {
 

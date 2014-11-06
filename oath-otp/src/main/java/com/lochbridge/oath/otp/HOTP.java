@@ -7,7 +7,7 @@ package com.lochbridge.oath.otp;
  * Refer to {@link HOTPBuilder} on how to generate a {@code HOTP}.
  * </p>
  * 
- * @see https://tools.ietf.org/html/rfc4226
+ * @see <a href="https://tools.ietf.org/html/rfc4226">RFC 4226</a>
  */
 public final class HOTP {
 
