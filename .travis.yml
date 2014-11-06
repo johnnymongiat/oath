@@ -11,7 +11,8 @@ install: echo "Maven build controlled by the script command."
 script: mvn clean verify
 
 # coveralls.io integration
-after_success: mvn jacoco:report coveralls:jacoco
+after_success:
+  - mvn jacoco:report org.eluder.coveralls:coveralls-maven-plugin:jacoco
 
 branches:
   only:
