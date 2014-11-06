@@ -1,0 +1,17 @@
+language: java
+jdk:
+  - oraclejdk7
+
+#TODO codecov.io integration
+#before_install: sudo pip install codecov
+
+# need to override travis 'install' since it will try gpg sign and fail.
+#install: mvn clean package -DskipTests=true
+install: echo "Maven build controlled by the script command."
+
+# Activate code coverage
+script: mvn clean verify -Pcoverage
+
+branches:
+  only:
+    - master

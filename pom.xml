@@ -41,6 +41,11 @@
         <url>https://github.com/johnnymongiat/oath/issues</url>
     </issueManagement>
     
+    <ciManagement>
+        <system>Travis CI</system>
+        <url>https://travis-ci.org/johnnymongiat/oath</url>
+    </ciManagement>
+    
     <licenses>
         <license>
             <name>The MIT License (MIT)</name>
