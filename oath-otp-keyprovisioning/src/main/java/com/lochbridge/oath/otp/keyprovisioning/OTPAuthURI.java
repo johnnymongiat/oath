@@ -14,9 +14,10 @@ import com.lochbridge.oath.otp.keyprovisioning.OTPKey.OTPType;
 public class OTPAuthURI {
     
     private static final String URI_SAFECHARS_QUERY_STRING =
-            "-._~" +      // Unreserved characters
-            "!$'()*,;" +  // The subdelim characters (excluding '+', '&' and '=').
-            "@:/?";       // The gendelim characters permitted in query parameters.
+            "-._~" +      // Unreserved characters (as per the PercentEscaper: the ranges 0..9, a..z and A..Z are always safe and should not be specified here)
+            "!$'()*,;" +  // The "sub-delims" characters (excluding '+', '&' and '=').
+            ":@" +        // The additional "pchar" characters permitted in query parameters.
+            "/?";         // The additional "query" characters permitted in query parameters.
     
     private static final Escaper QUERY_STRING_ESCAPER_NO_PLUS = new PercentEscaper(URI_SAFECHARS_QUERY_STRING, false);
     
