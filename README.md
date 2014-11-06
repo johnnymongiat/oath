@@ -1,5 +1,7 @@
 ## An OATH (Open Authentication) Toolkit
 
+[![Build Status](https://travis-ci.org/johnnymongiat/oath.svg?branch=master)](https://travis-ci.org/johnnymongiat/oath)
+
 A Java-based OATH toolkit providing components for building one-time password authentication systems. Supported technologies include the event/counter-based HOTP algorithm ([RFC4226](https://tools.ietf.org/html/rfc4226)) and the time-based TOTP algorithm ([RFC6238](https://tools.ietf.org/html/rfc6238)).
 
 Presently, the toolkit provides the following components:
