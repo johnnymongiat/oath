@@ -14,6 +14,7 @@
     <properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<jacoco.version>0.7.2.201409121644</jacoco.version>
 		<guava.version>18.0</guava.version>
 		<codahale.metrics.version>3.1.0</codahale.metrics.version>
 	</properties>
@@ -53,8 +54,7 @@
         </license>
     </licenses>
     
-    <!-- TODO remove once coveralls integration is working -->
-    <!--profiles>
+    <profiles>
     	<profile>
     		<id>coverage</id>
     		<build>
@@ -62,10 +62,10 @@
     				<plugin>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
-						<version>0.7.2.201409121644</version>
+						<version>${jacoco.version}</version>
 						<executions>
 							<execution>
-								<id>default-prepare-agent</id>
+								<id>prepare-agent</id>
 								<goals>
 									<goal>prepare-agent</goal>
 								</goals>
@@ -79,15 +79,10 @@
 							</execution>
 						</executions>
 					</plugin>
-					<plugin>
-                        <groupId>org.eluder.coveralls</groupId>
-                        <artifactId>coveralls-maven-plugin</artifactId>
-                        <version>3.0.1</version>
-                    </plugin>
     			</plugins>
     		</build>
     	</profile>
-    </profiles-->
+    </profiles>
 	
 	<dependencies>
         <dependency>
@@ -186,7 +181,7 @@
             <plugin>
 	            <groupId>org.jacoco</groupId>
 	            <artifactId>jacoco-maven-plugin</artifactId>
-	            <version>0.7.2.201409121644</version>
+	            <version>${jacoco.version}</version>
 	            <executions>
 	                <execution>
 	                    <id>prepare-agent</id>
