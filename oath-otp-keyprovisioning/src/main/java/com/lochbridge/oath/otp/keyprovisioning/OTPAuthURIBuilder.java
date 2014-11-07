@@ -124,7 +124,8 @@ public class OTPAuthURIBuilder {
     
     /**
      * Returns this {@code OTPAuthURIBuilder} instance with RFC 3986 URL-encoding
-     * of the configured issuer parameter omitted.
+     * of the configured issuer parameter omitted. Note that this only applies to the
+     * issuer parameter, and not the label's issuer prefix value (if present).
      * <p>
      * If you want the issuer parameter to be RFC 3986 URL-encoded, then
      * call the {@link #includeIssuerEncoding()} on this builder instance.
@@ -139,7 +140,9 @@ public class OTPAuthURIBuilder {
     
     /**
      * Returns this {@code OTPAuthURIBuilder} instance enabled with RFC 3986 URL-encoding
-     * of the configured issuer parameter (if present).
+     * of the configured issuer parameter (if present). The default behavior is to URL-encode
+     * the issuer parameter. Note that this only applies to the issuer parameter, and not the 
+     * label's issuer prefix value (if present).
      * <p>
      * If you do NOT want the issuer parameter to be RFC 3986 URL-encoded, then
      * call the {@link #omitIssuerEncoding()} on this builder instance.
@@ -277,9 +280,7 @@ public class OTPAuthURIBuilder {
             Preconditions.checkArgument(!label.contains(":"), "The 'label' cannot contain any ':' characters other than the separator between the issuer prefix and account name!");
         }
         else {
-            if (label.length() <= index) {
-                throw new IllegalArgumentException("The label's account name is missing!");
-            }
+            Preconditions.checkArgument(label.length() > index, "The label's account name is missing!");
             String accountName = label.substring(index + 1);
             Preconditions.checkArgument(!accountName.trim().isEmpty(), "The label's account name is empty!");
             Preconditions.checkArgument(!accountName.contains(":"), "The label's account name cannot contain any ':' characters!");

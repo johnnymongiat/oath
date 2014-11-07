@@ -14,7 +14,7 @@
     <properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<jacoco.version>0.7.2.201409121644</jacoco.version>
+<!-- 		<jacoco.version>0.7.2.201409121644</jacoco.version> -->
 		<guava.version>18.0</guava.version>
 		<codahale.metrics.version>3.1.0</codahale.metrics.version>
 	</properties>
@@ -54,7 +54,8 @@
         </license>
     </licenses>
     
-    <profiles>
+    <!-- TODO remove once switch to cobertura is complete -->
+    <!--profiles>
     	<profile>
     		<id>coverage</id>
     		<build>
@@ -82,7 +83,7 @@
     			</plugins>
     		</build>
     	</profile>
-    </profiles>
+    </profiles-->
 	
 	<dependencies>
         <dependency>
@@ -178,7 +179,8 @@
                     </archive>
                 </configuration>
             </plugin>
-            <plugin>
+            <!-- TODO remove once switch to cobertura is complete -->
+            <!--plugin>
 	            <groupId>org.jacoco</groupId>
 	            <artifactId>jacoco-maven-plugin</artifactId>
 	            <version>${jacoco.version}</version>
@@ -190,7 +192,19 @@
 	                    </goals>
 	                </execution>
 	            </executions>
-	        </plugin>
+	        </plugin-->
+	        <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <formats>
+                        <format>xml</format>
+                        <format>html</format>
+                    </formats>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
 	        <plugin>
 	            <groupId>org.eluder.coveralls</groupId>
 	            <artifactId>coveralls-maven-plugin</artifactId>
@@ -198,8 +212,24 @@
 	        </plugin>
         </plugins>
     </build>
+    
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <dependencyDetailsEnabled>true</dependencyDetailsEnabled>
+                    <dependencyLocationsEnabled>true</dependencyLocationsEnabled>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+    
     <modules>
     	<module>oath-otp</module>
     	<module>oath-otp-keyprovisioning</module>
     </modules>
+    
 </project>

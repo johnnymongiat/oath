@@ -6,13 +6,12 @@ jdk:
 #install: mvn clean package -DskipTests=true
 install: echo "Maven build controlled by the script command."
 
-# activate code coverage
-#script: mvn clean verify -Pcoverage
+# standard maven build.
 script: mvn clean verify
 
-# coveralls.io integration
+# coveralls.io integration of cobertura code coverage data.
 after_success:
-  - mvn jacoco:report coveralls:report
+  - mvn cobertura:cobertura coveralls:report
 
 branches:
   only:
