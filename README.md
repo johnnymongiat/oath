@@ -127,9 +127,12 @@ To build:
 
     mvn clean verify
     
-To build and activate code coverage metrics:
+Likewise, if you would want to generate code coverage reports, execute the following commands:
 
-    mvn clean verify -Pcoverage
+    mvn clean verify -DskipTests
+    mvn cobertura:cobertura
+    
+The code coverage reports will be available under target/site/cobertura directory (open the index.html file).
 
 ## License
 
