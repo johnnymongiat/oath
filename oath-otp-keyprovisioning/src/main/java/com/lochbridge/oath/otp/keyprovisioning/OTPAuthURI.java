@@ -2,6 +2,7 @@ package com.lochbridge.oath.otp.keyprovisioning;
 
 import java.util.Locale;
 
+import com.google.common.base.Preconditions;
 import com.google.common.escape.Escaper;
 import com.google.common.net.PercentEscaper;
 import com.google.common.net.UrlEscapers;
@@ -23,9 +24,7 @@ public class OTPAuthURI {
     
     private final OTPKey key;
     private final String issuer;
-    private final boolean encodeIssuer;
     private final String label;
-    private final boolean encodeLabel;
     private final long counter;
     private final int digits;
     private final long timeStep;
@@ -36,20 +35,15 @@ public class OTPAuthURI {
      * 
      * @param key the {@link OTPKey}.
      * @param issuer the issuer string value indicating the provider or service this account is associated with
-     * @param encodeIssuer flag indicating whether or not the issuer component should be URI-encoded during URI string construction
      * @param label the label used to identify which account the underlying key is associated with
-     * @param encodeLabel flag indicating whether or not the label component should be URI-encoded during URI string construction
      * @param counter the initial counter value (aka the moving factor)
      * @param digits the number of digits an OTP will contain
      * @param timeStep the time step size (in seconds) used for generating TOTPs
      */
-    OTPAuthURI(OTPKey key, String issuer, boolean encodeIssuer, String label, boolean encodeLabel, 
-            long counter, int digits, long timeStep) {
+    OTPAuthURI(OTPKey key, String issuer, String label, long counter, int digits, long timeStep) {
         this.key = key;
         this.issuer = issuer;
-        this.encodeIssuer = encodeIssuer;
         this.label = label;
-        this.encodeLabel = encodeLabel;
         this.counter = counter;
         this.digits = digits;
         this.timeStep = timeStep;
@@ -70,8 +64,8 @@ public class OTPAuthURI {
      * issuer prefix of the label. If both issuer parameter and issuer label prefix are present, 
      * they will be equal.
      * <p>
-     * This method returns the un-encoded value of the issuer. If you want to obtain a URI-encoded
-     * version, then call the {@link #getEncodedIssuer()}
+     * This method returns the decoded/plain-text value of the issuer. If you want to obtain a 
+     * URI-encoded version, then call the {@link #getEncodedIssuer()}
      * 
      * @return the issuer string value indicating the provider or service this account is 
      * associated with.
@@ -81,13 +75,13 @@ public class OTPAuthURI {
     }
     
     /**
-     * Returns the RFC 3986 URI-encoded value of this URI's issuer component. The un-encoded
+     * Returns the RFC 3986 URI-encoded value of this URI's issuer component. The decoded
      * version is obtained via {@link #getIssuer()}.
      * 
      * @return the RFC 3986 URI-encoded value of this URI's issuer component.
      */
     public String getEncodedIssuer() {
-        return QUERY_STRING_ESCAPER_NO_PLUS.escape(issuer);
+        return issuer == null ? null : safeEncodeIssuer(issuer);
     }
 
     /**
@@ -112,8 +106,8 @@ public class OTPAuthURI {
      * the issuer prefix, and {@code "%20alice@bigco.com"} is the account name (URI-encoded)</li>
      * </ul>
      * <p>
-     * This method returns the un-encoded value of the label. If you want to obtain a URI-encoded
-     * version, then call the {@link #getEncodedLabel()}
+     * This method returns the decoded/plain-text value of the label. If you want to obtain a 
+     * URI-encoded version, then call the {@link #getEncodedLabel()}
      * 
      * @return the label used to identify which account the underlying key is associated with.
      */
@@ -122,13 +116,13 @@ public class OTPAuthURI {
     }
     
     /**
-     * Returns the RFC 3986 URI-encoded value of this URI's label component. The un-encoded
+     * Returns the RFC 3986 URI-encoded value of this URI's label component. The decoded
      * version is obtained via {@link #getLabel()}.
      * 
      * @return the RFC 3986 URI-encoded value of this URI's label component.
      */
     public String getEncodedLabel() {
-        return UrlEscapers.urlPathSegmentEscaper().escape(label);
+        return safeEncodeLabel(label);
     }
 
     /**
@@ -186,12 +180,12 @@ public class OTPAuthURI {
         sb.append("otpauth://");
         sb.append(key.getType().getName().toLowerCase(Locale.US));
         sb.append("/");
-        sb.append(ignoreEncodeSettings ? label : (encodeLabel ? UrlEscapers.urlPathSegmentEscaper().escape(label) : label));
+        sb.append(ignoreEncodeSettings ? label : safeEncodeLabel(label));
         sb.append("?secret=");
         sb.append(key.getKey());
         if (issuer != null) {
             sb.append("&issuer=");
-            sb.append(ignoreEncodeSettings ? issuer : (encodeIssuer ? QUERY_STRING_ESCAPER_NO_PLUS.escape(issuer) : issuer));
+            sb.append(ignoreEncodeSettings ? issuer : safeEncodeIssuer(issuer));
         }
         sb.append("&digits=");
         sb.append(digits);
@@ -242,6 +236,82 @@ public class OTPAuthURI {
      */
     public String toUriString() {
         return contstructUriString(false);
+    }
+    
+    /**
+     * Returns the escaped form of a given {@code label} string so that it can be
+     * safely included in {@link OTPAuthURI}s. All non-ASCII characters, and 
+     * the slash character ("/") are escaped.
+     *
+     * <p>When escaping a String, the following rules apply:
+     * <ul>
+     * <li>The alphanumeric characters "a" through "z", "A" through "Z" and "0"
+     *     through "9" remain the same.
+     * <li>The unreserved characters ".", "-", "~", and "_" remain the same.
+     * <li>The general delimiters "@" and ":" remain the same.
+     * <li>The sub-delimiters "!", "$", "&amp;", "'", "(", ")", "*", "+", ",", ";",
+     *     and "=" remain the same.
+     * <li>The space character " " is converted into %20.
+     * <li>All other characters are converted into one or more bytes using UTF-8
+     *     encoding and each byte is then represented by the 3-character string
+     *     "%XY", where "XY" is the two-digit, uppercase, hexadecimal
+     *     representation of the byte value.
+     * </ul>
+     *
+     * <p><b>Note:</b> Escaped characters produce uppercase hexadecimal sequences. 
+     * From <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986</a>:<br>
+     * <i>"URI producers and normalizers should use uppercase hexadecimal digits
+     * for all percent-encodings."</i>
+     * 
+     * @param label the OTP Auth URI label to be escaped
+     * 
+     * @return the escaped form of a given {@code label} string
+     */
+    public static final String encodeLabel(String label) {
+        Preconditions.checkNotNull(label);
+        return safeEncodeLabel(label);
+    }
+    
+    private static final String safeEncodeLabel(String label) {
+        return UrlEscapers.urlPathSegmentEscaper().escape(label);
+    }
+    
+    /**
+     * Returns the escaped form of a given {@code issuer} string so that it can be
+     * safely included in {@link OTPAuthURI}s. All non-ASCII characters are escaped.
+     *
+     * <p>When escaping a String, the following rules apply:
+     * <ul>
+     * <li>The alphanumeric characters "a" through "z", "A" through "Z" and "0"
+     *     through "9" remain the same.
+     * <li>The unreserved characters ".", "-", "~", and "_" remain the same.
+     * <li>The additional "pchar" characters "@" and ":" remain the same.
+     * <li>The sub-delimiters "!", "$", "'", "(", ")", "*", ",", and ";" remain the same.
+     * ('+', '&' and '=' are excluded)
+     * <li>The additional "query" characters "/", and "?" remain the same.
+     * <li>The space character " " is converted into %20.
+     * <li>All other characters are converted into one or more bytes using UTF-8
+     *     encoding and each byte is then represented by the 3-character string
+     *     "%XY", where "XY" is the two-digit, uppercase, hexadecimal
+     *     representation of the byte value.
+     * </ul>
+     *
+     * <p><b>Note:</b> Escaped characters produce uppercase hexadecimal sequences. 
+     * From <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986</a>:<br>
+     * <i>"URI producers and normalizers should use uppercase hexadecimal digits
+     * for all percent-encodings."</i>
+     * 
+     * @param issuer the OTP Auth URI issuer to be escaped
+     * 
+     * @return the escaped form of a given {@code issuer} string
+     */
+    public static final String encodeIssuer(String issuer) {
+        Preconditions.checkNotNull(issuer);
+        return safeEncodeIssuer(issuer);
+    }
+    
+    public static final String safeEncodeIssuer(String issuer) {
+        return QUERY_STRING_ESCAPER_NO_PLUS.escape(issuer);
     }
 
 }

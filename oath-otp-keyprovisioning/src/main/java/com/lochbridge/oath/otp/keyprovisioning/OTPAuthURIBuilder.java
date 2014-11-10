@@ -1,8 +1,19 @@
 package com.lochbridge.oath.otp.keyprovisioning;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import com.lochbridge.oath.otp.HOTPBuilder;
 import com.lochbridge.oath.otp.TOTPBuilder;
@@ -30,16 +41,32 @@ import com.lochbridge.oath.otp.keyprovisioning.OTPKey.OTPType;
  * String secretKey = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"; // a base32 encoded shared secret key.
  * String issuer = "Acme Corporation";
  * String label = issuer + ":Alice Smith";
- * OTPAuthURI uri = OTPAuthURIBuilder.key(new OTPKey(secretKey, OTPType.TOTP)).issuer(issuer).digits(6).timeStep(30000L).build(label, true);
+ * OTPAuthURI uri = OTPAuthURIBuilder.fromKey(key).label(label).issuer(issuer).digits(6).timeStep(30000L).build();
  * // Prints "otpauth://totp/Acme%20Corporation:Alice%20Smith?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&issuer=Acme%20Corporation&digits=6&period=30"
  * System.out.println(uri.toUriString());
+ * 
+ * OTPAuthURI uri2 = OTPAuthURIBuilder.fromUriString(uri.toUriString()).build();
+ * assert uri2.toUriString().equals(uri.toUriString());
+ * assert uri2.toPlainTextUriString().equals(uri.toPlainTextUriString());
  * </pre>
  */
 public class OTPAuthURIBuilder {
 
+    private static final String SCHEME_PATTERN = "(otpauth)";
+
+    private static final String OTP_TYPE_PATTERN = "(hotp|totp)";
+
+    private static final String LABEL_PATTERN = "([^?#]*)";
+
+    private static final String QUERY_PATTERN = "([^#]*)";
+
+    /** Regex pattern that matches the OTP Auth URI format. */
+    private static final Pattern OTP_AUTH_URI_PATTERN = Pattern.compile(SCHEME_PATTERN + "://" + OTP_TYPE_PATTERN + "/" + LABEL_PATTERN + "\\?" + QUERY_PATTERN);
+
     private final OTPKey key;
+    private String label;
+    private String labelIssuerPrefix;
     private String issuer;
-    private boolean encodeIssuer = true;
     private long counter = 0;
     private int digits;
     private long timeStep = TOTPBuilder.DEFAULT_TIME_STEP;
@@ -48,7 +75,7 @@ public class OTPAuthURIBuilder {
         this.key = key;
         this.digits = (key.getType().equals(OTPType.HOTP)) ? HOTPBuilder.DEFAULT_DIGITS : TOTPBuilder.DEFAULT_DIGITS;
     }
-
+    
     /**
      * Returns a new {@link OTPAuthURIBuilder} instance initialised with the
      * specified {@link OTPKey}.
@@ -61,9 +88,161 @@ public class OTPAuthURIBuilder {
      * @throws NullPointerException
      *             if {@code key} is {@code null}.
      */
-    public static OTPAuthURIBuilder key(OTPKey key) {
-        Preconditions.checkNotNull(key);
+    public static OTPAuthURIBuilder fromKey(OTPKey key) {
         return new OTPAuthURIBuilder(key);
+    }
+    
+    /**
+     * TODO
+     * @param uri
+     * @return
+     */
+    public static OTPAuthURIBuilder fromUriString(String uri) {
+        Preconditions.checkNotNull(uri);
+        Matcher m = OTP_AUTH_URI_PATTERN.matcher(uri);
+        if (!m.matches()) {
+            throw new IllegalArgumentException("[" + uri + "] is not a valid OTP Auth URI");
+        }
+        final OTPType otpType = OTPType.from(m.group(2).toUpperCase(Locale.US));
+        
+        String uriPath = null;
+        try {
+            // Since the label component of the Auth URI is expected to be encoded, we can use the URI class to obtain the decoded value. 
+            uriPath = new URI(uri).getPath();
+            uriPath = (uriPath.charAt(0) == '/') ? uriPath.substring(1) : uriPath;
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
+        final String label = uriPath;
+        
+        final String query = m.group(4);
+        final Map<String, String> decoder = Splitter.on('&').withKeyValueSeparator("=").split(query);
+        if (!decoder.containsKey("secret")) {
+            throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'secret' parameter is missing!");
+        }
+        String secret = decoder.get("secret");
+        if (Strings.nullToEmpty(secret).trim().isEmpty()) {
+            throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'secret' parameter value is missing!");
+        }
+        
+        String issuer = null;
+        if (decoder.containsKey("issuer")) {
+            issuer = decoder.get("issuer");
+            if (Strings.nullToEmpty(issuer).trim().isEmpty()) {
+                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'issuer' parameter value is missing!");
+            }
+            //TODO QueryStringDecoder.decodeComponent(issuer, StandardCharsets.UTF_8);
+            try {
+                issuer = URLDecoder.decode(issuer, StandardCharsets.UTF_8.name());
+            } catch (UnsupportedEncodingException e) {
+                // This should never happen!
+                throw new RuntimeException("Unexpected error - underlying platform does not support UTF-8 charset!", e);
+            }
+        }
+        
+        if (!decoder.containsKey("digits")) {
+            throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'digits' parameter is missing!");
+        }
+        String digitsParam = decoder.get("digits");
+        if (Strings.nullToEmpty(digitsParam).trim().isEmpty()) {
+            throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'digits' parameter value is missing!");
+        }
+        int digits = Integer.valueOf(digitsParam);//TODO integer pattern
+        
+        Long counter = null;
+        if (decoder.containsKey("counter")) {
+            if (!otpType.equals(OTPType.HOTP)) {
+                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'counter' is not a valid totp parameter!");
+            }
+            String counterParam = decoder.get("counter");
+            if (Strings.nullToEmpty(counterParam).trim().isEmpty()) {
+                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'counter' parameter value is missing!");
+            }
+            counter = Long.valueOf(counterParam);//TODO long pattern
+        }
+        else if (otpType.equals(OTPType.HOTP)) {
+            throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'counter' parameter is missing!");
+        }
+        
+        Long period = null;
+        if (decoder.containsKey("period")) {
+            if (!otpType.equals(OTPType.TOTP)) {
+                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'period' is not a valid hotp parameter!");
+            }
+            String periodParam = decoder.get("period");
+            if (Strings.nullToEmpty(periodParam).trim().isEmpty()) {
+                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'period' parameter value is missing!");
+            }
+            period = Long.valueOf(periodParam);//TODO long pattern
+        }
+        else if (otpType.equals(OTPType.TOTP)) {
+            throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'period' parameter is missing!");
+        }
+        
+        OTPAuthURIBuilder builder = new OTPAuthURIBuilder(new OTPKey(secret, otpType)).label(label).issuer(issuer).digits(digits);
+        if (counter != null) {
+            builder.counter(counter);
+        }
+        if (period != null) {
+            builder.timeStep(TimeUnit.SECONDS.toMillis(period));
+        }
+        return builder;
+    }
+    
+    /**
+     * Returns this {@code OTPAuthURIBuilder} instance initialised with the
+     * specified {@code label}. The {@code label} is used to identify which account the 
+     * underlying key is associated with. It contains an account name, optionally prefixed 
+     * by an issuer string identifying the provider or service managing that account. This 
+     * issuer prefix can be used to prevent collisions between different accounts with 
+     * different providers that might be identified using the same account name, e.g. the 
+     * user's email address. If both issuer parameter and issuer label prefix are present, 
+     * they MUST be equal.
+     * <p>
+     * The issuer prefix and account name must be separated by a literal colon, and optional 
+     * spaces may precede the account name. Neither issuer nor account name may themselves 
+     * contain a colon.
+     * <p>
+     * Some examples:
+     * <ul>
+     * <li>{@code "Example:alice@gmail.com"}, where {@code "Example"} is the issuer prefix, and
+     * {@code "alice@gmail.com"} is the account name</li>
+     * <li>{@code "Provider1:Alice%20Smith"}, where {@code "Provider1"} is the issuer prefix, and
+     * {@code "Alice%20Smith"} is the account name (URI-encoded)</li>
+     * <li>{@code "Big%20Corporation:%20alice@bigco.com"}, where {@code "Big%20Corporation"} is
+     * the issuer prefix, and {@code "%20alice@bigco.com"} is the account name (URI-encoded)</li>
+     * </ul>
+     * 
+     * @param label the label (decoded/plain-text) used to identify which account the underlying key is associated with.
+     * 
+     * @throws NullPointerException
+     *             if {@code label} {@code null}.
+     * @throws IllegalArgumentException
+     *             <ul>
+     *             <li>if the {@code label}'s account name portion is missing/empty.</li>
+     *             <li>if the {@code label}'s account name portion contains a literal colon character.</li>
+     *             </ul>
+     * 
+     * @return this {@code OTPAuthURIBuilder} instance initialised with the specified {@code label}.
+     */
+    public OTPAuthURIBuilder label(String label) {
+        Preconditions.checkNotNull(label);
+        int index = label.indexOf(":");
+        String issuerPrefix = (index > 0) ? label.substring(0, index) : null;
+        if (issuerPrefix == null) {
+            // Then the label itself represents the account name.
+            Preconditions.checkArgument(!label.trim().isEmpty(), "The label's account name is missing or empty!");
+            Preconditions.checkArgument(!label.contains(":"), "The 'label' cannot contain any ':' characters other than the separator between the issuer prefix and account name!");
+        }
+        else {
+            Preconditions.checkArgument(label.length() > index, "The label's account name is missing!");
+            String accountName = label.substring(index + 1);
+            Preconditions.checkArgument(!accountName.trim().isEmpty(), "The label's account name is empty!");
+            Preconditions.checkArgument(!accountName.contains(":"), "The label's account name cannot contain any ':' characters!");
+        }
+        this.label = label;
+        this.labelIssuerPrefix = issuerPrefix;
+        return this;
     }
 
     /**
@@ -73,11 +252,6 @@ public class OTPAuthURIBuilder {
      * parameter is absent, issuer information may be taken from the issuer prefix 
      * of the label. If both issuer parameter and issuer label prefix are present, 
      * they MUST be equal.
-     * <p>
-     * If you do NOT want the issuer parameter to be URL-encoded according to RFC 3986, then
-     * call the {@link #omitIssuerEncoding()} on this builder instance. Likewise, if you want
-     * to reset RFC 3986 URL-encoding of the issuer, then call {@link #includeIssuerEncoding()}.
-     * The default configuration is to URL-encode the value.
      * <p>
      * Even though this parameter is optional, it is <b>STRONGLY
      * RECOMMEDNDED</b> that it be set along with the issuer label prefix.
@@ -101,16 +275,13 @@ public class OTPAuthURIBuilder {
      * both old and new Google Authenticator versions.
      * 
      * @param issuer
-     *            the issuer (un-encoded/plain-text). Use the {@link #omitIssuerEncoding()} or
-     *            {@link #includeIssuerEncoding()} to disable or enable RFC 3986 URL-encoding
-     *            of the value (the default configuration is to URL-encode the value).
+     *            the issuer (decoded/plain-text).
      * 
      * @return this {@code OTPAuthURIBuilder} instance initialised with the
      *         specified issuer.
      * 
      * @throws IllegalArgumentException
-     *             if {@code issuer} is not {@code null}, and contains a literal or 
-     *             URL-encoded colon.
+     *             if {@code issuer} is not {@code null}, and contains a literal colon.
      */
     public OTPAuthURIBuilder issuer(String issuer) {
         if (issuer != null) {
@@ -119,39 +290,6 @@ public class OTPAuthURIBuilder {
                     "The issuer cannot contain a colon!");
         }
         this.issuer = issuer;
-        return this;
-    }
-    
-    /**
-     * Returns this {@code OTPAuthURIBuilder} instance with RFC 3986 URL-encoding
-     * of the configured issuer parameter omitted. Note that this only applies to the
-     * issuer parameter, and not the label's issuer prefix value (if present).
-     * <p>
-     * If you want the issuer parameter to be RFC 3986 URL-encoded, then
-     * call the {@link #includeIssuerEncoding()} on this builder instance.
-     * 
-     * @return this {@code OTPAuthURIBuilder} instance with RFC 3986 URL-encoding
-     * of the configured issuer parameter omitted.
-     */
-    public OTPAuthURIBuilder omitIssuerEncoding() {
-        encodeIssuer = false;
-        return this;
-    }
-    
-    /**
-     * Returns this {@code OTPAuthURIBuilder} instance enabled with RFC 3986 URL-encoding
-     * of the configured issuer parameter (if present). The default behavior is to URL-encode
-     * the issuer parameter. Note that this only applies to the issuer parameter, and not the 
-     * label's issuer prefix value (if present).
-     * <p>
-     * If you do NOT want the issuer parameter to be RFC 3986 URL-encoded, then
-     * call the {@link #omitIssuerEncoding()} on this builder instance.
-     * 
-     * @return this {@code OTPAuthURIBuilder} instance enabled with RFC 3986 URL-encoding
-     * of the configured issuer parameter (if present).
-     */
-    public OTPAuthURIBuilder includeIssuerEncoding() {
-        encodeIssuer = true;
         return this;
     }
     
@@ -230,67 +368,22 @@ public class OTPAuthURIBuilder {
     
     /**
      * Creates an {@link OTPAuthURI} using this builder's configured parameters.
-     * <p>
-     * The {@code label} is used to identify which account the underlying key is 
-     * associated with. It contains an account name, optionally prefixed by an issuer 
-     * string identifying the provider or service managing that account. This issuer 
-     * prefix can be used to prevent collisions between different accounts with different 
-     * providers that might be identified using the same account name, e.g. the user's 
-     * email address.
-     * <p>
-     * The issuer prefix and account name should be separated by a literal colon, and optional 
-     * spaces may precede the account name. Neither issuer nor account name may themselves 
-     * contain a colon.
-     * <p>
-     * Set the {@code encodeLabel} argument to {@code true} if you want the {@code label} to be
-     * URI-encoded, or {@code false} to ignore encoding.
-     * <p>
-     * Some examples:
-     * <ul>
-     * <li>{@code "Example:alice@gmail.com"}, where {@code "Example"} is the issuer prefix, and
-     * {@code "alice@gmail.com"} is the account name</li>
-     * <li>{@code "Provider1:Alice%20Smith"}, where {@code "Provider1"} is the issuer prefix, and
-     * {@code "Alice%20Smith"} is the account name (URI-encoded)</li>
-     * <li>{@code "Big%20Corporation:%20alice@bigco.com"}, where {@code "Big%20Corporation"} is
-     * the issuer prefix, and {@code "%20alice@bigco.com"} is the account name (URI-encoded)</li>
-     * </ul>
      * 
-     * @param label the label (un-encoded/plain-text) used to identify which account the underlying key is associated with.
-     * @param encodeLabel whether the {@code label} should be URI-encoded ({@code true}) or not ({@code false}).
-     * 
-     * @throws NullPointerException
-     *             if {@code label} {@code null}.
-     * @throws IllegalArgumentException
+     * @throws IllegalStateException
      *             <ul>
-     *             <li>if the {@code label}'s account name portion is missing/empty.</li>
-     *             <li>if the {@code label}'s account name portion contains a colon character.</li>
+     *             <li>if the {@code label} parameter was never set.</li>
      *             <li>if {@code issuer} is not {@code null}, and does not match the {@code label}'s issuer prefix (if present).</li>
      *             </ul>
      * 
      * @return an {@link OTPAuthURI} using this builder's configured parameters.
      */
-    public OTPAuthURI build(String label, boolean encodeLabel) {
-        Preconditions.checkNotNull(label);
-        
-        int index = label.indexOf(":");
-        String labelIssuerPrefix = (index > 0) ? label.substring(0, index) : null;
-        if (labelIssuerPrefix == null) {
-            // Then the label itself represents the account name.
-            Preconditions.checkArgument(!label.trim().isEmpty(), "The label's account name is missing or empty!");
-            Preconditions.checkArgument(!label.contains(":"), "The 'label' cannot contain any ':' characters other than the separator between the issuer prefix and account name!");
+    public OTPAuthURI build() {
+        Preconditions.checkState(label != null, "The label has not been configured!");
+        // Ensure that the label's issuer prefix is the same as the configured issuer parameter (if itself present).
+        if (issuer != null && labelIssuerPrefix != null) {
+            Preconditions.checkState(issuer.equals(labelIssuerPrefix), "The 'issuer' and label issuer prefix values are different!");
         }
-        else {
-            Preconditions.checkArgument(label.length() > index, "The label's account name is missing!");
-            String accountName = label.substring(index + 1);
-            Preconditions.checkArgument(!accountName.trim().isEmpty(), "The label's account name is empty!");
-            Preconditions.checkArgument(!accountName.contains(":"), "The label's account name cannot contain any ':' characters!");
-            // Verify that the label's issuer prefix is the same as the configured issuer parameter (if itself present).
-            if (issuer != null) {
-                Preconditions.checkArgument(issuer.equals(labelIssuerPrefix), "The 'issuer' and label issuer prefix values are different!");
-            }
-        }
-        
-        return new OTPAuthURI(key, issuer, encodeIssuer, label, encodeLabel, counter, digits, TimeUnit.MILLISECONDS.toSeconds(timeStep));
+        return new OTPAuthURI(key, issuer, label, counter, digits, TimeUnit.MILLISECONDS.toSeconds(timeStep));
     }
 
 }

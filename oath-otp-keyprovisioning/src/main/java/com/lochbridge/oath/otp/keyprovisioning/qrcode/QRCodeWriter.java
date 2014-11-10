@@ -28,7 +28,7 @@ import com.lochbridge.oath.otp.keyprovisioning.OTPAuthURI;
  * String label = issuer + ":Alice Smith";
  * 
  * // Create the OTP Auth URI. 
- * OTPAuthURI uri = OTPAuthURIBuilder.key(key).issuer(issuer).digits(6).timeStep(30000L).build(label, true);
+ * OTPAuthURI uri = OTPAuthURIBuilder.fromKey(key).label(label).issuer(issuer).digits(6).timeStep(30000L).build();
  * 
  * // Render a QR Code into a file.
  * File file = new File("path/to/qrcode.png");
@@ -38,7 +38,6 @@ import com.lochbridge.oath.otp.keyprovisioning.OTPAuthURI;
 public class QRCodeWriter {
 
     private final OTPAuthURI uri;
-    private boolean usePlainTextURI = false;
     private int width = 250;
     private int height = 250;
     private ErrorCorrectionLevel errorCorrectionLevel = ErrorCorrectionLevel.L;
@@ -64,24 +63,6 @@ public class QRCodeWriter {
     public static QRCodeWriter fromURI(OTPAuthURI uri) {
         Preconditions.checkNotNull(uri);
         return new QRCodeWriter(uri);
-    }
-    
-    /**
-     * Returns this {@code QRCodeWriter} instance to use the plain-text version of
-     * the underlying {@code OTPAuthURI} as the QR Code content ({@code true}), or 
-     * not ({@code false}). The default value is {@code false}, thus the 
-     * {@link OTPAuthURI#toUriString()} will be used as the QR Code content.
-     * 
-     * @param usePlainTextURI whether the underlying {@code OTPAuthURI}'s plain-text version should be 
-     * used as the QR Code content ({@code true}), or not ({@code false}).
-     * 
-     * @return this {@code QRCodeWriter} instance to use the plain-text version of
-     * the underlying {@code OTPAuthURI} as the QR Code content ({@code true}), or 
-     * not ({@code false}).
-     */
-    public QRCodeWriter usePlainTextURI(boolean usePlainTextURI) {
-        this.usePlainTextURI = usePlainTextURI;
-        return this;
     }
 
     /**
@@ -197,7 +178,7 @@ public class QRCodeWriter {
             hints.put(EncodeHintType.CHARACTER_SET, StandardCharsets.UTF_8.name()); //TODO should this be configurable?
             hints.put(EncodeHintType.MARGIN, Integer.valueOf(margin));
             hints.put(EncodeHintType.ERROR_CORRECTION, com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.forBits(errorCorrectionLevel.getBits()));
-            BitMatrix matrix = writer.encode(usePlainTextURI ? uri.toPlainTextUriString() : uri.toUriString(), BarcodeFormat.QR_CODE, width, height, hints);
+            BitMatrix matrix = writer.encode(uri.toUriString(), BarcodeFormat.QR_CODE, width, height, hints);
             if (os != null) {
                 MatrixToImageWriter.writeToStream(matrix, imageFormatName, os);
             }

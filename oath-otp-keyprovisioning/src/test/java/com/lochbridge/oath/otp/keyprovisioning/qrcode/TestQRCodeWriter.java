@@ -49,7 +49,7 @@ public class TestQRCodeWriter {
         String issuer = "Acme Corporation";
         String accountName = "Alice Smith";
         String label = String.format("%s:%s", issuer, accountName);
-        TOTP_AUTH_URI = OTPAuthURIBuilder.key(key).issuer(issuer).digits(6).timeStep(TimeUnit.SECONDS.toMillis(30)).build(label, true);
+        TOTP_AUTH_URI = OTPAuthURIBuilder.fromKey(key).label(label).issuer(issuer).digits(6).timeStep(TimeUnit.SECONDS.toMillis(30)).build();
     }
     
     @AfterClass
@@ -101,19 +101,6 @@ public class TestQRCodeWriter {
     }
     
     @Test
-    public void writeToFileShouldSucceedWhenQRCodeIsBasedOffThePlainTextURIString() throws IOException, NotFoundException {
-        QRCodeWriter.fromURI(TOTP_AUTH_URI)
-            .width(300)
-            .height(300)
-            .errorCorrectionLevel(ErrorCorrectionLevel.H)
-            .margin(4)
-            .imageFormatName("PNG")
-            .usePlainTextURI(true)
-            .write(pathOfQRCodeImage);
-        assertEquals(TOTP_AUTH_URI.toPlainTextUriString(), getQRCodeImageRawText(pathOfQRCodeImage));
-    }
-    
-    @Test
     public void writeToOutputStreamShouldSucceedWhenQRCodeIsBasedOffTheURIString() throws IOException, NotFoundException {
         QRCodeWriter.fromURI(TOTP_AUTH_URI)
             .width(300)
@@ -123,19 +110,6 @@ public class TestQRCodeWriter {
             .imageFormatName("PNG")
             .write(new FileOutputStream(pathOfQRCodeImage.toFile()));
         assertEquals(TOTP_AUTH_URI.toUriString(), getQRCodeImageRawText(pathOfQRCodeImage));
-    }
-    
-    @Test
-    public void writeToOutputStreamShouldSucceedWhenQRCodeIsBasedOffThePlainTextURIString() throws IOException, NotFoundException {
-        QRCodeWriter.fromURI(TOTP_AUTH_URI)
-            .width(300)
-            .height(300)
-            .errorCorrectionLevel(ErrorCorrectionLevel.H)
-            .margin(4)
-            .imageFormatName("PNG")
-            .usePlainTextURI(true)
-            .write(new FileOutputStream(pathOfQRCodeImage.toFile()));
-        assertEquals(TOTP_AUTH_URI.toPlainTextUriString(), getQRCodeImageRawText(pathOfQRCodeImage));
     }
 
 }
