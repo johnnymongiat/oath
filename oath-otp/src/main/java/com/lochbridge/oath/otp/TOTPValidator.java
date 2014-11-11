@@ -53,7 +53,7 @@ public final class TOTPValidator {
     private final int window;
 
     /**
-     * Creates a new instance of {@code TOTPValidator} initialised with the
+     * Creates a new instance of {@code TOTPValidator} initialized with the
      * specified {@code window} verification size.
      * 
      * @param window
@@ -68,7 +68,7 @@ public final class TOTPValidator {
     }
 
     /**
-     * Returns a new {@link TOTPValidator} instance initialised with the
+     * Returns a new {@link TOTPValidator} instance initialized with the
      * {@link #DEFAULT_WINDOW} verification size.
      * 
      * @return a new {@link TOTPValidator} instance.
@@ -78,7 +78,7 @@ public final class TOTPValidator {
     }
 
     /**
-     * Returns a new {@link TOTPValidator} instance initialised with the
+     * Returns a new {@link TOTPValidator} instance initialized with the
      * specified {@code window} verification size.
      * 
      * @param window

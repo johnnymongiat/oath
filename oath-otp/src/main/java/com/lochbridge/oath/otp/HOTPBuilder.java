@@ -66,7 +66,7 @@ public final class HOTPBuilder {
     private int digits = DEFAULT_DIGITS;
 
     /**
-     * Creates a new instance of {@code HOTPBuilder} initialised with a shared
+     * Creates a new instance of {@code HOTPBuilder} initialized with a shared
      * secret key.
      * 
      * @param key
@@ -83,13 +83,13 @@ public final class HOTPBuilder {
     }
 
     /**
-     * Returns this {@code HOTPBuilder} instance initialised with the specified
+     * Returns this {@code HOTPBuilder} instance initialized with the specified
      * {@code movingFactor}.
      * 
      * @param movingFactor
      *            the moving factor
      * 
-     * @return this {@code HOTPBuilder} instance initialised with the specified
+     * @return this {@code HOTPBuilder} instance initialized with the specified
      *         {@code movingFactor}.
      * 
      * @throws IllegalArgumentException
@@ -102,7 +102,7 @@ public final class HOTPBuilder {
     }
 
     /**
-     * Returns this {@code HOTPBuilder} instance initialised with the specified
+     * Returns this {@code HOTPBuilder} instance initialized with the specified
      * {@code digits}.
      * 
      * @param digits
@@ -110,7 +110,7 @@ public final class HOTPBuilder {
      *            (must be between {@link #MIN_ALLOWED_DIGITS} and
      *            {@link #MAX_ALLOWED_DIGITS} inclusive)
      * 
-     * @return this {@code HOTPBuilder} instance initialised with the specified
+     * @return this {@code HOTPBuilder} instance initialized with the specified
      *         {@code digits}.
      * 
      * @throws IllegalArgumentException

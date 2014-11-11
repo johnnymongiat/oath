@@ -9,8 +9,32 @@ import com.google.common.net.UrlEscapers;
 import com.lochbridge.oath.otp.keyprovisioning.OTPKey.OTPType;
 
 /**
- * An immutable class representing an OTP Auth URI. Refer to {@link OTPAuthURIBuilder}'s documentation 
- * for format, and example details.
+ * An immutable class representing an OTP Auth URI (as per the 
+ * <a href="https://code.google.com/p/google-authenticator/wiki/KeyUriFormat">Google Authenticator URI format</a>):
+ * <pre>otpauth://{type}/{label}?secret={secret}&issuer={issuer}&digits={digits}&counter={counter}&period={period}</pre>
+ * <ul>
+ * <li>{@code type}: The OTP type, either "hotp" or "totp".</li>
+ * <li>{@code label}: The label used to identify which account the underlying key is associated with. 
+ * It contains an account name, which is a URI-encoded string, optionally prefixed by an issuer string 
+ * identifying the provider or service managing that account.</li>
+ * <li>{@code secret}: The encoded value of the underlying OTP shared secret key.</li>
+ * <li>{@code issuer}: String identifying the provider or service managing that account.</li>
+ * <li>{@code counter}: The initial counter value (aka the moving factor). The parameter will only be present 
+ * if the {@code type} is "hotp".</li>
+ * <li>{@code period}: The time step size (in seconds) used for generating TOTPs. The parameter will only be present 
+ * if the {@code type} is "totp".</li>
+ * </ul>
+ * <p>
+ * Instances of {@code OTPAuthURI}s are created using the static methods provided in the {@link OTPAuthURIBuilder} class,
+ * for example:
+ * <pre>
+ * String secret = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ";
+ * String issuer = "Acme Corporation";
+ * String label = issuer + ":Alice Smith";
+ * OTPAuthURI uri = OTPAuthURIBuilder.fromKey(new OTPKey(secret, OTPType.TOTP)).label(label).issuer(issuer).digits(6).timeStep(30000L).build();
+ * // Prints "otpauth://totp/Acme%20Corporation:Alice%20Smith?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&issuer=Acme%20Corporation&digits=6&period=30"
+ * System.out.println(uri.toUriString());
+ * </pre>
  */
 public class OTPAuthURI {
     
@@ -68,17 +92,18 @@ public class OTPAuthURI {
      * URI-encoded version, then call the {@link #getEncodedIssuer()}
      * 
      * @return the issuer string value indicating the provider or service this account is 
-     * associated with.
+     * associated with, or {@code null} if no issuer.
      */
     public String getIssuer() {
         return issuer;
     }
     
     /**
-     * Returns the RFC 3986 URI-encoded value of this URI's issuer component. The decoded
-     * version is obtained via {@link #getIssuer()}.
+     * Returns the RFC 3986 URI-encoded value of this URI's issuer component, or {@code null}
+     * if no issuer. The decoded version is obtained via {@link #getIssuer()}.
      * 
-     * @return the RFC 3986 URI-encoded value of this URI's issuer component.
+     * @return the RFC 3986 URI-encoded value of this URI's issuer component, or {@code null}
+     * if no issuer.
      */
     public String getEncodedIssuer() {
         return issuer == null ? null : safeEncodeIssuer(issuer);
@@ -202,7 +227,7 @@ public class OTPAuthURI {
     
     /**
      * Returns the content of this URI as a string, with no URI-encoding of any of the components. This assumes that the 
-     * individual components were themselves un-encoded when this instance was built.
+     * individual components were themselves decoded/plain-text when this instance was built.
      * 
      * @return the content of this URI as a string, with no URI-encoding of any of the components.
      */
@@ -214,7 +239,7 @@ public class OTPAuthURI {
      * Returns the content of this URI as a string, with the label, and/or issuer components URI-encoded as per the
      * configuration at the time this URI was built. If you want to obtain an un-encoded or plain-text string version
      * then call the {@link #toPlainTextUriString()}. The latter assumes that the individual components were themselves
-     * un-encoded when this instance was built. 
+     * decoded/plain-text when this instance was built. 
      * <p>
      * The URI conforms to the following format:
      * <pre>otpauth://{type}/{label}?secret={secret}&issuer={issuer}&digits={digits}&counter={counter}&period={period}</pre>
@@ -242,8 +267,8 @@ public class OTPAuthURI {
      * Returns the escaped form of a given {@code label} string so that it can be
      * safely included in {@link OTPAuthURI}s. All non-ASCII characters, and 
      * the slash character ("/") are escaped.
-     *
-     * <p>When escaping a String, the following rules apply:
+     * <p>
+     * When escaping a String, the following rules apply:
      * <ul>
      * <li>The alphanumeric characters "a" through "z", "A" through "Z" and "0"
      *     through "9" remain the same.
@@ -310,7 +335,7 @@ public class OTPAuthURI {
         return safeEncodeIssuer(issuer);
     }
     
-    public static final String safeEncodeIssuer(String issuer) {
+    private static final String safeEncodeIssuer(String issuer) {
         return QUERY_STRING_ESCAPER_NO_PLUS.escape(issuer);
     }
 

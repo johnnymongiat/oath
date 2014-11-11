@@ -36,7 +36,7 @@ public final class HOTP {
     }
 
     /**
-     * Returns a new {@link HOTPBuilder} instance initialised with the specified
+     * Returns a new {@link HOTPBuilder} instance initialized with the specified
      * {@code key}.
      * 
      * @param key

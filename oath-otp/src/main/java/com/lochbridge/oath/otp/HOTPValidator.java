@@ -63,7 +63,7 @@ public final class HOTPValidator {
     private final int lookAheadWindow;
 
     /**
-     * Creates a new instance of {@code TOTPValidator} initialised with the
+     * Creates a new instance of {@code TOTPValidator} initialized with the
      * specified {@code window} verification size.
      * 
      * @param lookAheadWindow
@@ -78,7 +78,7 @@ public final class HOTPValidator {
     }
 
     /**
-     * Returns a new {@link HOTPValidator} instance initialised with the
+     * Returns a new {@link HOTPValidator} instance initialized with the
      * {@link #DEFAULT_LOOK_AHEAD_WINDOW} verification size.
      * 
      * @return a new {@link HOTPValidator} instance.
@@ -88,7 +88,7 @@ public final class HOTPValidator {
     }
 
     /**
-     * Returns a new {@link HOTPValidator} instance initialised with the
+     * Returns a new {@link HOTPValidator} instance initialized with the
      * specified {@code lookAheadWindow} verification size.
      * 
      * @param lookAheadWindow

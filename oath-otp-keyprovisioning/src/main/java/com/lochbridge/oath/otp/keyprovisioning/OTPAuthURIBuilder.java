@@ -7,6 +7,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,34 +21,20 @@ import com.lochbridge.oath.otp.TOTPBuilder;
 import com.lochbridge.oath.otp.keyprovisioning.OTPKey.OTPType;
 
 /**
- * A class that creates {@link OTPAuthURI}s representing an OTP Auth URI (as per the 
- * <a href="https://code.google.com/p/google-authenticator/wiki/KeyUriFormat">Google Authenticator URI format</a>):
- * <pre>otpauth://{type}/{label}?secret={secret}&issuer={issuer}&digits={digits}&counter={counter}&period={period}</pre>
- * <ul>
- * <li>{@code type}: The OTP type, either "hotp" or "totp".</li>
- * <li>{@code label}: The label used to identify which account the underlying key is associated with. 
- * It contains an account name, which is a URI-encoded string, optionally prefixed by an issuer string 
- * identifying the provider or service managing that account.</li>
- * <li>{@code secret}: The encoded value of the underlying OTP shared secret key.</li>
- * <li>{@code issuer}: String identifying the provider or service managing that account.</li>
- * <li>{@code counter}: The initial counter value (aka the moving factor). The parameter will only be present 
- * if the {@code type} is "hotp".</li>
- * <li>{@code period}: The time step size (in seconds) used for generating TOTPs. The parameter will only be present 
- * if the {@code type} is "totp".</li>
- * </ul>
+ * A class that creates {@link OTPAuthURI}s. Refer to {@link OTPAuthURI} for the format of an OTP Auth URI.
  * <p>
  * Example:
  * <pre>
- * String secretKey = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"; // a base32 encoded shared secret key.
+ * String secret = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ";
  * String issuer = "Acme Corporation";
  * String label = issuer + ":Alice Smith";
- * OTPAuthURI uri = OTPAuthURIBuilder.fromKey(key).label(label).issuer(issuer).digits(6).timeStep(30000L).build();
+ * OTPAuthURI uri = OTPAuthURIBuilder.fromKey(new OTPKey(secret, OTPType.TOTP)).label(label).issuer(issuer).digits(6).timeStep(30000L).build();
  * // Prints "otpauth://totp/Acme%20Corporation:Alice%20Smith?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&issuer=Acme%20Corporation&digits=6&period=30"
  * System.out.println(uri.toUriString());
  * 
- * OTPAuthURI uri2 = OTPAuthURIBuilder.fromUriString(uri.toUriString()).build();
- * assert uri2.toUriString().equals(uri.toUriString());
- * assert uri2.toPlainTextUriString().equals(uri.toPlainTextUriString());
+ * OTPAuthURI uriExample2 = OTPAuthURIBuilder.fromUriString(uri.toUriString()).build();
+ * assert uriExample2.toUriString().equals(uri.toUriString());
+ * assert uriExample2.toPlainTextUriString().equals(uri.toPlainTextUriString());
  * </pre>
  */
 public class OTPAuthURIBuilder {
@@ -77,7 +64,7 @@ public class OTPAuthURIBuilder {
     }
     
     /**
-     * Returns a new {@link OTPAuthURIBuilder} instance initialised with the
+     * Returns a new {@link OTPAuthURIBuilder} instance initialized with the
      * specified {@link OTPKey}.
      * 
      * @param key
@@ -93,9 +80,46 @@ public class OTPAuthURIBuilder {
     }
     
     /**
-     * TODO
-     * @param uri
-     * @return
+     * Returns a new {@link OTPAuthURIBuilder} that is initialized with the given OTP Auth URI string.
+     * <p>
+     * <strong>Note:</strong> The specified {@code uri} <strong>MUST</strong> have its {@code label} 
+     * component and {@code issuer} parameter value correctly encoded to prevent incorrect parsing of 
+     * the URI string (see {@link OTPAuthURI#encodeLabel(String)} and 
+     * {@link OTPAuthURI#encodeIssuer(String)} for encoding helper methods). For example if the issuer 
+     * parameter contains {@code '?'} or {@code '='} or {@code '&'} characters, then such values should 
+     * be encoded beforehand to enable correct parsing:
+     * <pre>
+     * String issuer = &quot;Ben & Jerry&quot;;
+     * String label = issuer + &quot;:&quot; + &quot;Alice Smith&quot;;
+     * String uri = &quot;otpauth://totp/&quot; + OTPAuthURI.encodeLabel(label) + &quot;?secret=...&issuer=&quot; + OTPAuthURI.encodeIssuer(issuer) + &quot;...&quot;;
+     * // uri is &quot;otpauth://totp/Ben%20%26%20Jerry:Alice%20Smith?secret=...&issuer=Ben%20%26%20Jerry...&quot;
+     * OTPAuthURIBuilder.fromUriString(uri).build();
+     * </pre>
+     * 
+     * @param uri the OTP Auth URI string
+     * 
+     * @return a new {@link OTPAuthURIBuilder} instance.
+     * 
+     * @throws NullPointerException
+     *             if {@code uri} is {@code uri}.
+     * @throws IllegalArgumentException
+     *             <ul>
+     *             <li>if {@code uri} is not of valid OTP Auth URI format.</li>
+     *             <li>if the {@code uri}'s label component is missing., or is of invalid format
+     *             (see {@link OTPAuthURIBuilder#label(String)}).</li>
+     *             <li>if the {@code uri}'s secret parameter (and/or value) is missing.</li>
+     *             <li>if the {@code uri}'s issuer parameter value is missing, or is of invalid format
+     *             (see {@link OTPAuthURIBuilder#issuer(String)}).</li>
+     *             <li>if the {@code uri}'s digits parameter (and/or value) is missing, or 
+     *             invalid numerical format, or out of the acceptable range 
+     *             (see {@link OTPAuthURIBuilder#digits(int)}).</li>
+     *             <li>if {@code uri} is HOTP-based and the counter parameter (and/or value) 
+     *             is missing, or invalid numerical format, or out of the acceptable range 
+     *             (see {@link OTPAuthURIBuilder#counter(long)}).</li>
+     *             <li>if {@code uri} is TOTP-based and the period parameter (and/or value) 
+     *             is missing, or invalid numerical format, or out of the acceptable range 
+     *             (see {@link OTPAuthURIBuilder#period(long)}).</li>
+     *             </ul>
      */
     public static OTPAuthURIBuilder fromUriString(String uri) {
         Preconditions.checkNotNull(uri);
@@ -105,77 +129,82 @@ public class OTPAuthURIBuilder {
         }
         final OTPType otpType = OTPType.from(m.group(2).toUpperCase(Locale.US));
         
-        String uriPath = null;
+        String label = null;
         try {
-            // Since the label component of the Auth URI is expected to be encoded, we can use the URI class to obtain the decoded value. 
-            uriPath = new URI(uri).getPath();
-            uriPath = (uriPath.charAt(0) == '/') ? uriPath.substring(1) : uriPath;
+            // Since the label component of the Auth URI is expected to be encoded, we can use the URI class to obtain the decoded value.
+            // (do not include the leading '/') 
+            label = new URI(uri).getPath().substring(1);
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
-        final String label = uriPath;
+        if (Strings.nullToEmpty(label).trim().isEmpty()) {
+            throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'label' component is missing!");
+        }
         
+        String secret = null;  // required
+        String issuer = null;  // optional
+        Integer digits = null; // required
+        Long counter = null;   // required if HOTP
+        Long period = null;    // required if TOTP
         final String query = m.group(4);
         final Map<String, String> decoder = Splitter.on('&').withKeyValueSeparator("=").split(query);
-        if (!decoder.containsKey("secret")) {
+        for (Entry<String, String> queryParam : decoder.entrySet()) {
+            if ("secret".equals(queryParam.getKey())) {
+                secret = queryParam.getValue();
+                if (Strings.nullToEmpty(secret).trim().isEmpty()) {
+                    throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'secret' parameter value is missing!");
+                }
+            }
+            else if ("issuer".equals(queryParam.getKey())) {
+                if (Strings.nullToEmpty(queryParam.getValue()).trim().isEmpty()) {
+                    throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'issuer' parameter value is missing!");
+                }
+                try {
+                    // Safe to use URLDecoder since we are dealing with a query parameter value.
+                    issuer = URLDecoder.decode(queryParam.getValue(), StandardCharsets.UTF_8.name());
+                } catch (UnsupportedEncodingException e) {
+                    // This should never happen!
+                    throw new RuntimeException("Unexpected error - underlying platform does not support UTF-8 charset!", e);
+                }
+            }
+            else if ("digits".equals(queryParam.getKey())) {
+                if (Strings.nullToEmpty(queryParam.getValue()).trim().isEmpty()) {
+                    throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'digits' parameter value is missing!");
+                }
+                digits = Integer.valueOf(queryParam.getValue());
+            }
+            else if ("counter".equals(queryParam.getKey())) {
+                if (!otpType.equals(OTPType.HOTP)) {
+                    throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'counter' is not a valid totp parameter!");
+                }
+                if (Strings.nullToEmpty(queryParam.getValue()).trim().isEmpty()) {
+                    throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'counter' parameter value is missing!");
+                }
+                counter = Long.valueOf(queryParam.getValue());
+            }
+            else if ("period".equals(queryParam.getKey())) {
+                if (!otpType.equals(OTPType.TOTP)) {
+                    throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'period' is not a valid hotp parameter!");
+                }
+                if (Strings.nullToEmpty(queryParam.getValue()).trim().isEmpty()) {
+                    throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'period' parameter value is missing!");
+                }
+                period = Long.valueOf(queryParam.getValue());
+            }
+            else {
+                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: '" + queryParam.getKey() + "' is not a supported parameter!");
+            }
+        }
+        if (secret == null) {
             throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'secret' parameter is missing!");
         }
-        String secret = decoder.get("secret");
-        if (Strings.nullToEmpty(secret).trim().isEmpty()) {
-            throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'secret' parameter value is missing!");
-        }
-        
-        String issuer = null;
-        if (decoder.containsKey("issuer")) {
-            issuer = decoder.get("issuer");
-            if (Strings.nullToEmpty(issuer).trim().isEmpty()) {
-                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'issuer' parameter value is missing!");
-            }
-            //TODO QueryStringDecoder.decodeComponent(issuer, StandardCharsets.UTF_8);
-            try {
-                issuer = URLDecoder.decode(issuer, StandardCharsets.UTF_8.name());
-            } catch (UnsupportedEncodingException e) {
-                // This should never happen!
-                throw new RuntimeException("Unexpected error - underlying platform does not support UTF-8 charset!", e);
-            }
-        }
-        
-        if (!decoder.containsKey("digits")) {
+        if (digits == null) {
             throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'digits' parameter is missing!");
         }
-        String digitsParam = decoder.get("digits");
-        if (Strings.nullToEmpty(digitsParam).trim().isEmpty()) {
-            throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'digits' parameter value is missing!");
-        }
-        int digits = Integer.valueOf(digitsParam);//TODO integer pattern
-        
-        Long counter = null;
-        if (decoder.containsKey("counter")) {
-            if (!otpType.equals(OTPType.HOTP)) {
-                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'counter' is not a valid totp parameter!");
-            }
-            String counterParam = decoder.get("counter");
-            if (Strings.nullToEmpty(counterParam).trim().isEmpty()) {
-                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'counter' parameter value is missing!");
-            }
-            counter = Long.valueOf(counterParam);//TODO long pattern
-        }
-        else if (otpType.equals(OTPType.HOTP)) {
+        if (otpType.equals(OTPType.HOTP) && counter == null) {
             throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'counter' parameter is missing!");
         }
-        
-        Long period = null;
-        if (decoder.containsKey("period")) {
-            if (!otpType.equals(OTPType.TOTP)) {
-                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'period' is not a valid hotp parameter!");
-            }
-            String periodParam = decoder.get("period");
-            if (Strings.nullToEmpty(periodParam).trim().isEmpty()) {
-                throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'period' parameter value is missing!");
-            }
-            period = Long.valueOf(periodParam);//TODO long pattern
-        }
-        else if (otpType.equals(OTPType.TOTP)) {
+        if (otpType.equals(OTPType.TOTP) && period == null) {
             throw new IllegalArgumentException("[" + uri + "] is not a valid otp auth URI: 'period' parameter is missing!");
         }
         
@@ -190,7 +219,7 @@ public class OTPAuthURIBuilder {
     }
     
     /**
-     * Returns this {@code OTPAuthURIBuilder} instance initialised with the
+     * Returns this {@code OTPAuthURIBuilder} instance initialized with the
      * specified {@code label}. The {@code label} is used to identify which account the 
      * underlying key is associated with. It contains an account name, optionally prefixed 
      * by an issuer string identifying the provider or service managing that account. This 
@@ -219,11 +248,12 @@ public class OTPAuthURIBuilder {
      *             if {@code label} {@code null}.
      * @throws IllegalArgumentException
      *             <ul>
-     *             <li>if the {@code label}'s account name portion is missing/empty.</li>
-     *             <li>if the {@code label}'s account name portion contains a literal colon character.</li>
+     *             <li>if the {@code label}'s account name segment is missing or empty.</li>
+     *             <li>if the {@code label}'s account name segment contains a literal colon character.</li>
+     *             <li>if the {@code label}'s issuer prefix segment is present, and is an empty string (consists entirely of " " characters).</li>
      *             </ul>
      * 
-     * @return this {@code OTPAuthURIBuilder} instance initialised with the specified {@code label}.
+     * @return this {@code OTPAuthURIBuilder} instance initialized with the specified {@code label}.
      */
     public OTPAuthURIBuilder label(String label) {
         Preconditions.checkNotNull(label);
@@ -235,9 +265,9 @@ public class OTPAuthURIBuilder {
             Preconditions.checkArgument(!label.contains(":"), "The 'label' cannot contain any ':' characters other than the separator between the issuer prefix and account name!");
         }
         else {
-            Preconditions.checkArgument(label.length() > index, "The label's account name is missing!");
+            Preconditions.checkArgument(!issuerPrefix.trim().isEmpty(), "The label's issuer prefix is empty!");
             String accountName = label.substring(index + 1);
-            Preconditions.checkArgument(!accountName.trim().isEmpty(), "The label's account name is empty!");
+            Preconditions.checkArgument(!accountName.trim().isEmpty(), "The label's account name is missing or empty!");
             Preconditions.checkArgument(!accountName.contains(":"), "The label's account name cannot contain any ':' characters!");
         }
         this.label = label;
@@ -246,7 +276,7 @@ public class OTPAuthURIBuilder {
     }
 
     /**
-     * Returns this {@code OTPAuthURIBuilder} instance initialised with the
+     * Returns this {@code OTPAuthURIBuilder} instance initialized with the
      * specified issuer. The issuer parameter is a string value indicating the
      * provider or service this account is associated with. If the issuer 
      * parameter is absent, issuer information may be taken from the issuer prefix 
@@ -277,7 +307,7 @@ public class OTPAuthURIBuilder {
      * @param issuer
      *            the issuer (decoded/plain-text).
      * 
-     * @return this {@code OTPAuthURIBuilder} instance initialised with the
+     * @return this {@code OTPAuthURIBuilder} instance initialized with the
      *         specified issuer.
      * 
      * @throws IllegalArgumentException
@@ -285,16 +315,15 @@ public class OTPAuthURIBuilder {
      */
     public OTPAuthURIBuilder issuer(String issuer) {
         if (issuer != null) {
-            // Ensure the issuer does contain a colon.
-            Preconditions.checkArgument(!(issuer.contains(":") || issuer.contains("%3A")), 
-                    "The issuer cannot contain a colon!");
+            // Ensure the issuer does not contain a colon.
+            Preconditions.checkArgument(!(issuer.contains(":")), "The issuer cannot contain a colon!");
         }
         this.issuer = issuer;
         return this;
     }
     
     /**
-     * Returns this {@code OTPAuthURIBuilder} instance initialised with the
+     * Returns this {@code OTPAuthURIBuilder} instance initialized with the
      * specified digits. This parameter specifies the number of digits an 
      * OTP will contain. The default value is {@link HOTPBuilder#DEFAULT_DIGITS}
      * if the underlying {@code OTPKey} type is HOTP, otherwise {@link TOTPBuilder#DEFAULT_DIGITS}.
@@ -302,7 +331,7 @@ public class OTPAuthURIBuilder {
      * @param digits
      *            the number of digits an OTP will contain.
      * 
-     * @return this {@code OTPAuthURIBuilder} instance initialised with the
+     * @return this {@code OTPAuthURIBuilder} instance initialized with the
      *         specified counter.
      * 
      * @throws IllegalArgumentException
@@ -324,7 +353,7 @@ public class OTPAuthURIBuilder {
     }
 
     /**
-     * Returns this {@code OTPAuthURIBuilder} instance initialised with the
+     * Returns this {@code OTPAuthURIBuilder} instance initialized with the
      * specified initial counter value (aka the moving factor). The parameter
      * is required if the underlying {@code OTPKey} type is HOTP, otherwise 
      * it is ignored. The default value is 0.
@@ -332,7 +361,7 @@ public class OTPAuthURIBuilder {
      * @param counter
      *            the initial counter value.
      * 
-     * @return this {@code OTPAuthURIBuilder} instance initialised with the
+     * @return this {@code OTPAuthURIBuilder} instance initialized with the
      *         specified counter.
      *         
      * @throws IllegalArgumentException
@@ -345,7 +374,7 @@ public class OTPAuthURIBuilder {
     }
     
     /**
-     * Returns this {@code OTPAuthURIBuilder} instance initialised with the
+     * Returns this {@code OTPAuthURIBuilder} instance initialized with the
      * specified timeStep. This parameter specifies the time step size (in 
      * milliseconds) used for generating TOTPs. The parameter is required if the 
      * underlying {@code OTPKey} type is TOTP, otherwise it is ignored. 
@@ -354,7 +383,7 @@ public class OTPAuthURIBuilder {
      * @param timeStep
      *            the time step size (in milliseconds) used for generating TOTPs.
      * 
-     * @return this {@code OTPAuthURIBuilder} instance initialised with the
+     * @return this {@code OTPAuthURIBuilder} instance initialized with the
      *         specified timeStep.
      * 
      * @throws IllegalArgumentException

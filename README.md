@@ -10,7 +10,7 @@ Presently, the toolkit provides the following components:
 * **oath-otp**: A module for generating and validating OTPs.
 * **oath-otp-keyprovisioning**: A module for providing OTP key provisioning support.
 
-## Examples of Generating/Validating HOTP/TOTP(s)
+## Example of Generating an HOTP
 
 ```java
 // Generate a 6-digit HOTP using an arbitrary moving factor of 5, 
@@ -21,6 +21,8 @@ HOTP hotp = HOTP.key(key).digits(6).movingFactor(5).build();
 // prints "254676"
 System.out.println(hotp.value());
 ```
+
+## Example of Validating an HOTP
 
 ```java
 // Example of validate a client submitted HOTP.
@@ -45,6 +47,8 @@ if (result.isValid()) {
 throw new Exception("HOTP validation attempt failed");
 ```
 
+## Example of Generating a TOTP
+
 ```java
 // Generate an 8-digit TOTP using a 30 second time step, HMAC-SHA-512,
 // and a 64 byte shared secret key.
@@ -53,6 +57,8 @@ byte[] key = sharedSecretKey.getBytes("US-ASCII");
 TOTP totp = TOTP.key(key).timeStep(TimeUnit.SECONDS.toMillis(30)).digits(8).hmacSha512().build();
 System.out.println("TOTP = " + totp.value());
 ```
+
+## Example of Validating a TOTP
 
 ```java
 // The following example illustrates support for Google Authenticator.
@@ -105,7 +111,8 @@ String issuer = "Acme Corporation";
 String label = issuer + ":Alice Smith";
 
 // Create the OTP Auth URI. 
-OTPAuthURI uri = OTPAuthURIBuilder.key(key).issuer(issuer).digits(6).timeStep(30000L).build(label, true);
+OTPAuthURI uri = OTPAuthURIBuilder.fromKey(key).label(label).issuer(issuer)
+    .digits(6).timeStep(30000L).build();
 System.out.println(uri.toUriString());
 System.out.println(uri.toPlainTextUriString());
 

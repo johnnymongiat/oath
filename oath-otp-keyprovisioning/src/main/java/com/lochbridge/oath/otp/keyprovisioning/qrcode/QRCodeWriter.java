@@ -22,8 +22,7 @@ import com.lochbridge.oath.otp.keyprovisioning.OTPAuthURI;
  * <p>
  * Example:
  * <pre>
- * String secretKey = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"; // a base32 encoded shared secret key.
- * OTPKey key = new OTPKey(secretKey, OTPType.TOTP);
+ * OTPKey key = new OTPKey("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", OTPType.TOTP);
  * String issuer = "Acme Corporation";
  * String label = issuer + ":Alice Smith";
  * 
@@ -49,7 +48,7 @@ public class QRCodeWriter {
     }
 
     /**
-     * Returns a new {@link QRCodeWriter} instance initialised with the
+     * Returns a new {@link QRCodeWriter} instance initialized with the
      * specified {@link OTPAuthURI}.
      * 
      * @param uri
@@ -66,13 +65,13 @@ public class QRCodeWriter {
     }
 
     /**
-     * Returns this {@code QRCodeWriter} instance initialised with the
+     * Returns this {@code QRCodeWriter} instance initialized with the
      * specified width of the QR code image. The default width is 250 pixels.
      * 
      * @param width
      *            the width of the QR code image.
      * 
-     * @return this {@code QRCodeWriter} instance initialised with the
+     * @return this {@code QRCodeWriter} instance initialized with the
      *         specified width of the QR code image.
      */
     public QRCodeWriter width(int width) {
@@ -81,13 +80,13 @@ public class QRCodeWriter {
     }
 
     /**
-     * Returns this {@code QRCodeWriter} instance initialised with the
+     * Returns this {@code QRCodeWriter} instance initialized with the
      * specified height of the QR code image. The default width is 250 pixels.
      * 
      * @param height
      *            the height of the QR code image.
      * 
-     * @return this {@code QRCodeWriter} instance initialised with the
+     * @return this {@code QRCodeWriter} instance initialized with the
      *         specified height of the QR code image.
      */
     public QRCodeWriter height(int height) {
@@ -96,14 +95,14 @@ public class QRCodeWriter {
     }
 
     /**
-     * Returns this {@code QRCodeWriter} instance initialised with the
+     * Returns this {@code QRCodeWriter} instance initialized with the
      * specified {@link ErrorCorrectionLevel}. The default is
      * {@link ErrorCorrectionLevel.L}.
      * 
      * @param errorCorrectionLevel
      *            the error correction level.
      * 
-     * @return this {@code QRCodeWriter} instance initialised with the
+     * @return this {@code QRCodeWriter} instance initialized with the
      *         specified {@link ErrorCorrectionLevel}.
      */
     public QRCodeWriter errorCorrectionLevel(ErrorCorrectionLevel errorCorrectionLevel) {
@@ -112,7 +111,7 @@ public class QRCodeWriter {
     }
 
     /**
-     * Returns this {@code QRCodeWriter} instance initialised with the
+     * Returns this {@code QRCodeWriter} instance initialized with the
      * specified margin. The margin is the width of the white border around the
      * data portion of the QR code. This is in rows, not in pixels. The default
      * value is 4.
@@ -120,7 +119,7 @@ public class QRCodeWriter {
      * @param margin
      *            the margin.
      * 
-     * @return this {@code QRCodeWriter} instance initialised with the
+     * @return this {@code QRCodeWriter} instance initialized with the
      *         specified margin.
      */
     public QRCodeWriter margin(int margin) {
@@ -129,14 +128,14 @@ public class QRCodeWriter {
     }
 
     /**
-     * Returns this {@code QRCodeWriter} instance initialised with the
+     * Returns this {@code QRCodeWriter} instance initialized with the
      * specified informal image format name to use when generating the QR code
      * image. The default is "PNG".
      * 
      * @param imageFormatName
      *            the informal image format name.
      * 
-     * @return this {@code QRCodeWriter} instance initialised with the
+     * @return this {@code QRCodeWriter} instance initialized with the
      *         specified informal image format name to use when generating the
      *         QR code image.
      */
@@ -175,7 +174,7 @@ public class QRCodeWriter {
         try {
             Writer writer = new MultiFormatWriter();
             Map<EncodeHintType, Object> hints = new Hashtable<EncodeHintType, Object>();
-            hints.put(EncodeHintType.CHARACTER_SET, StandardCharsets.UTF_8.name()); //TODO should this be configurable?
+            hints.put(EncodeHintType.CHARACTER_SET, StandardCharsets.UTF_8.name());
             hints.put(EncodeHintType.MARGIN, Integer.valueOf(margin));
             hints.put(EncodeHintType.ERROR_CORRECTION, com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.forBits(errorCorrectionLevel.getBits()));
             BitMatrix matrix = writer.encode(uri.toUriString(), BarcodeFormat.QR_CODE, width, height, hints);

@@ -84,7 +84,7 @@ public final class TOTPBuilder {
     private HmacShaAlgorithm hmacShaAlgorithm = HmacShaAlgorithm.HMAC_SHA_1;
 
     /**
-     * Creates a new instance of {@code TOTPBuilder} initialised with a shared
+     * Creates a new instance of {@code TOTPBuilder} initialized with a shared
      * secret key.
      * 
      * @param key
@@ -101,13 +101,13 @@ public final class TOTPBuilder {
     }
 
     /**
-     * Returns this {@code TOTPBuilder} instance initialised with the specified
+     * Returns this {@code TOTPBuilder} instance initialized with the specified
      * {@code timeStep} size.
      * 
      * @param timeStep
      *            the time step size in milliseconds
      * 
-     * @return this {@code TOTPBuilder} instance initialised with the specified
+     * @return this {@code TOTPBuilder} instance initialized with the specified
      *         {@code timeStep} size.
      * 
      * @throws IllegalArgumentException
@@ -120,7 +120,7 @@ public final class TOTPBuilder {
     }
 
     /**
-     * Returns this {@code TOTPBuilder} instance initialised with the specified
+     * Returns this {@code TOTPBuilder} instance initialized with the specified
      * {@code digits}.
      * 
      * @param digits
@@ -128,7 +128,7 @@ public final class TOTPBuilder {
      *            (must be between {@link #MIN_ALLOWED_DIGITS} and
      *            {@link #MAX_ALLOWED_DIGITS} inclusive)
      * 
-     * @return this {@code TOTPBuilder} instance initialised with the specified
+     * @return this {@code TOTPBuilder} instance initialized with the specified
      *         {@code digits}.
      * 
      * @throws IllegalArgumentException
@@ -142,13 +142,13 @@ public final class TOTPBuilder {
     }
 
     /**
-     * Returns this {@code TOTPBuilder} instance initialised with the specified
+     * Returns this {@code TOTPBuilder} instance initialized with the specified
      * HMAC-SHA {@code algorithm}.
      * 
      * @param algorithm
      *            the HMAC-SHA algorithm used in generating the TOTP value
      * 
-     * @return this {@code TOTPBuilder} instance initialised with the specified
+     * @return this {@code TOTPBuilder} instance initialized with the specified
      *         HMAC-SHA {@code algorithm}.
      * 
      * @throws NullPointerException
@@ -161,10 +161,10 @@ public final class TOTPBuilder {
     }
 
     /**
-     * Returns this {@code TOTPBuilder} instance initialised with the
+     * Returns this {@code TOTPBuilder} instance initialized with the
      * {@link HmacShaAlgorithm.HMAC_SHA_1}.
      * 
-     * @return this {@code TOTPBuilder} instance initialised with the
+     * @return this {@code TOTPBuilder} instance initialized with the
      *         {@link HmacShaAlgorithm.HMAC_SHA_1}.
      */
     public TOTPBuilder hmacSha1() {
@@ -172,10 +172,10 @@ public final class TOTPBuilder {
     }
 
     /**
-     * Returns this {@code TOTPBuilder} instance initialised with the
+     * Returns this {@code TOTPBuilder} instance initialized with the
      * {@link HmacShaAlgorithm.HMAC_SHA_256}.
      * 
-     * @return this {@code TOTPBuilder} instance initialised with the
+     * @return this {@code TOTPBuilder} instance initialized with the
      *         {@link HmacShaAlgorithm.HMAC_SHA_256}.
      */
     public TOTPBuilder hmacSha256() {
@@ -183,10 +183,10 @@ public final class TOTPBuilder {
     }
 
     /**
-     * Returns this {@code TOTPBuilder} instance initialised with the
+     * Returns this {@code TOTPBuilder} instance initialized with the
      * {@link HmacShaAlgorithm.HMAC_SHA_512}.
      * 
-     * @return this {@code TOTPBuilder} instance initialised with the
+     * @return this {@code TOTPBuilder} instance initialized with the
      *         {@link HmacShaAlgorithm.HMAC_SHA_512}.
      */
     public TOTPBuilder hmacSha512() {

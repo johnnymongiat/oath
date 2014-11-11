@@ -43,7 +43,7 @@ public final class TOTP {
     }
 
     /**
-     * Returns a new {@link TOTPBuilder} instance initialised with the specified
+     * Returns a new {@link TOTPBuilder} instance initialized with the specified
      * {@code key}.
      * 
      * @param key

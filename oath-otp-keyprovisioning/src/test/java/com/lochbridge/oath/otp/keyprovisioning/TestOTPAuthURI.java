@@ -25,7 +25,7 @@ public class TestOTPAuthURI {
     }
     
     @Test
-    public void encodeIssuerhouldSucceed() {
+    public void encodeIssuerShouldSucceed() {
         String issuer = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-~_@:!$'()*,;?/ +&=";
         String expected = issuer.substring(0, issuer.length() - 4) + "%20" + "%" + Integer.toHexString('+').toUpperCase(Locale.US) + 
                 "%" + Integer.toHexString('&').toUpperCase(Locale.US) + "%" + Integer.toHexString('=').toUpperCase(Locale.US);
