@@ -58,8 +58,8 @@ public class OTPAuthURI {
      * {@link OTPAuthURIBuilder} is responsible for validation, and creation of {@link OTPAuthURI}s.
      * 
      * @param key the {@link OTPKey}.
-     * @param issuer the issuer string value indicating the provider or service this account is associated with
-     * @param label the label used to identify which account the underlying key is associated with
+     * @param issuer the issuer string value (decoded/plain-text) indicating the provider or service this account is associated with
+     * @param label the label (decoded/plain-text) used to identify which account the underlying key is associated with
      * @param counter the initial counter value (aka the moving factor)
      * @param digits the number of digits an OTP will contain
      * @param timeStep the time step size (in seconds) used for generating TOTPs
@@ -227,7 +227,7 @@ public class OTPAuthURI {
     
     /**
      * Returns the content of this URI as a string, with no URI-encoding of any of the components. This assumes that the 
-     * individual components were themselves decoded/plain-text when this instance was built.
+     * individual components were themselves decoded/plain-text when this instance was built (this is a prerequisite).
      * 
      * @return the content of this URI as a string, with no URI-encoding of any of the components.
      */
@@ -236,10 +236,9 @@ public class OTPAuthURI {
     }
 
     /**
-     * Returns the content of this URI as a string, with the label, and/or issuer components URI-encoded as per the
-     * configuration at the time this URI was built. If you want to obtain an un-encoded or plain-text string version
-     * then call the {@link #toPlainTextUriString()}. The latter assumes that the individual components were themselves
-     * decoded/plain-text when this instance was built. 
+     * Returns the content of this URI as a string, with the label, and/or issuer components URI-encoded. If you want to 
+     * obtain a decoded/plain-text string version then call the {@link #toPlainTextUriString()}. The latter assumes that 
+     * the individual components were themselves decoded/plain-text when this instance was built (this is a prerequisite). 
      * <p>
      * The URI conforms to the following format:
      * <pre>otpauth://{type}/{label}?secret={secret}&issuer={issuer}&digits={digits}&counter={counter}&period={period}</pre>

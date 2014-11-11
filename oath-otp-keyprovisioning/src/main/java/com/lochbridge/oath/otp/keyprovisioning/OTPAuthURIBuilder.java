@@ -95,6 +95,14 @@ public class OTPAuthURIBuilder {
      * // uri is &quot;otpauth://totp/Ben%20%26%20Jerry:Alice%20Smith?secret=...&issuer=Ben%20%26%20Jerry...&quot;
      * OTPAuthURIBuilder.fromUriString(uri).build();
      * </pre>
+     * <p>
+     * This method <strong>MUST</strong> guarantee the following:
+     * <pre>
+     * OTPAuthURI srcURI = ...
+     * OTPAuthURI uri = OTPAuthURIBuilder.fromUriString(srcURI.toUriString()).build();
+     * assert uri.toUriString().equals(srcURI.toUriString());
+     * assert uri.toPlainTextUriString().equals(srcURI.toPlainTextUriString());
+     * </pre>
      * 
      * @param uri the OTP Auth URI string
      * 

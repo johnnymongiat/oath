@@ -6,10 +6,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import com.google.common.io.BaseEncoding;
 import com.lochbridge.oath.otp.HOTPBuilder;
 import com.lochbridge.oath.otp.TOTPBuilder;
 import com.lochbridge.oath.otp.keyprovisioning.OTPKey.OTPType;
@@ -143,6 +145,17 @@ public class TestOTPAuthURIBuilder {
     @Test(expected = IllegalArgumentException.class)
     public void fromUriStringShouldFailWhenURIContainsAnUnsupportedParameter() {
         OTPAuthURIBuilder.fromUriString("otpauth://totp/foo:bar?secret=123456&issuer=foo&digits=6&period=30&foo=bar");
+    }
+    
+    @Test
+    public void fromUriStringMustAbideByGuaranteeOfBeingConsistentWithTheSourceUri() {//TODO
+        final String secret = BaseEncoding.base32().encode("12345678901234567890".getBytes(StandardCharsets.US_ASCII));
+        final String issuer = "foo corp";
+        final String label = issuer + ":foo corp";
+        OTPAuthURI srcURI = OTPAuthURIBuilder.fromKey(new OTPKey(secret, OTPType.TOTP)).label(label).issuer(issuer).digits(6).timeStep(30000L).build();
+        OTPAuthURI uri = OTPAuthURIBuilder.fromUriString(srcURI.toUriString()).build();
+        assertEquals(srcURI.toUriString(), uri.toUriString());
+        assertEquals(srcURI.toPlainTextUriString(), uri.toPlainTextUriString());
     }
     
     @Test
