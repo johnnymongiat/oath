@@ -148,7 +148,7 @@ public class TestOTPAuthURIBuilder {
     }
     
     @Test
-    public void fromUriStringMustAbideByGuaranteeOfBeingConsistentWithTheSourceUri() {//TODO
+    public void fromUriStringMustAbideByGuaranteeOfBeingConsistentWithTheSourceUri() {
         final String secret = BaseEncoding.base32().encode("12345678901234567890".getBytes(StandardCharsets.US_ASCII));
         final String issuer = "foo corp";
         final String label = issuer + ":foo corp";

@@ -14,8 +14,9 @@ import com.google.common.collect.Range;
 /**
  * A HMAC-based One-time Password (HOTP) builder.
  * <p>
- * This is an implementation of the OATH HOTP algorithm as described by RFC
- * 4226. This implementation supports sequence/counter-based moving factors, and
+ * This is an implementation of the OATH HOTP algorithm as described by 
+ * <a href="https://tools.ietf.org/html/rfc4226">RFC 4226</a>. This 
+ * implementation supports sequence/counter-based moving factors, and
  * numeric-only HOTP values ranging from size 6 to 8 (inclusive). Clients are
  * recommended to use a shared secret key length of 160 bits.
  * </p>
@@ -40,7 +41,7 @@ import com.google.common.collect.Range;
  * @author Loren Hart
  * @author Johnny Mongiat
  * 
- * @see http://tools.ietf.org/html/rfc4226
+ * @see <a href="https://tools.ietf.org/html/rfc4226">RFC 4226</a>
  */
 public final class HOTPBuilder {
 

@@ -89,10 +89,10 @@ public class OTPAuthURIBuilder {
      * parameter contains {@code '?'} or {@code '='} or {@code '&'} characters, then such values should 
      * be encoded beforehand to enable correct parsing:
      * <pre>
-     * String issuer = &quot;Ben & Jerry&quot;;
+     * String issuer = &quot;Ben &amp; Jerry&quot;;
      * String label = issuer + &quot;:&quot; + &quot;Alice Smith&quot;;
-     * String uri = &quot;otpauth://totp/&quot; + OTPAuthURI.encodeLabel(label) + &quot;?secret=...&issuer=&quot; + OTPAuthURI.encodeIssuer(issuer) + &quot;...&quot;;
-     * // uri is &quot;otpauth://totp/Ben%20%26%20Jerry:Alice%20Smith?secret=...&issuer=Ben%20%26%20Jerry...&quot;
+     * String uri = &quot;otpauth://totp/&quot; + OTPAuthURI.encodeLabel(label) + &quot;?secret=...&amp;issuer=&quot; + OTPAuthURI.encodeIssuer(issuer) + &quot;...&quot;;
+     * // uri is &quot;otpauth://totp/Ben%20&amp;%20Jerry:Alice%20Smith?secret=...&amp;issuer=Ben%20%26%20Jerry...&amp;quot;
      * OTPAuthURIBuilder.fromUriString(uri).build();
      * </pre>
      * <p>
@@ -111,23 +111,27 @@ public class OTPAuthURIBuilder {
      * @throws NullPointerException
      *             if {@code uri} is {@code uri}.
      * @throws IllegalArgumentException
-     *             <ul>
-     *             <li>if {@code uri} is not of valid OTP Auth URI format.</li>
-     *             <li>if the {@code uri}'s label component is missing., or is of invalid format
-     *             (see {@link OTPAuthURIBuilder#label(String)}).</li>
-     *             <li>if the {@code uri}'s secret parameter (and/or value) is missing.</li>
-     *             <li>if the {@code uri}'s issuer parameter value is missing, or is of invalid format
-     *             (see {@link OTPAuthURIBuilder#issuer(String)}).</li>
-     *             <li>if the {@code uri}'s digits parameter (and/or value) is missing, or 
+     *             if {@code uri} is not of valid OTP Auth URI format.
+     * @throws IllegalArgumentException 
+     *             if the {@code uri}'s label component is missing., or is of invalid format
+     *             (see {@link OTPAuthURIBuilder#label(String)}).
+     * @throws IllegalArgumentException 
+     *             if the {@code uri}'s secret parameter (and/or value) is missing.
+     * @throws IllegalArgumentException 
+     *             if the {@code uri}'s issuer parameter value is missing, or is of invalid format
+     *             (see {@link OTPAuthURIBuilder#issuer(String)}).
+     * @throws IllegalArgumentException 
+     *             if the {@code uri}'s digits parameter (and/or value) is missing, or 
      *             invalid numerical format, or out of the acceptable range 
-     *             (see {@link OTPAuthURIBuilder#digits(int)}).</li>
-     *             <li>if {@code uri} is HOTP-based and the counter parameter (and/or value) 
+     *             (see {@link OTPAuthURIBuilder#digits(int)}).
+     * @throws IllegalArgumentException 
+     *             if {@code uri} is HOTP-based and the counter parameter (and/or value) 
      *             is missing, or invalid numerical format, or out of the acceptable range 
-     *             (see {@link OTPAuthURIBuilder#counter(long)}).</li>
-     *             <li>if {@code uri} is TOTP-based and the period parameter (and/or value) 
+     *             (see {@link OTPAuthURIBuilder#counter(long)}).
+     * @throws IllegalArgumentException 
+     *             if {@code uri} is TOTP-based and the period parameter (and/or value) 
      *             is missing, or invalid numerical format, or out of the acceptable range 
-     *             (see {@link OTPAuthURIBuilder#period(long)}).</li>
-     *             </ul>
+     *             (see {@link OTPAuthURIBuilder#period(long)}).
      */
     public static OTPAuthURIBuilder fromUriString(String uri) {
         Preconditions.checkNotNull(uri);
@@ -255,11 +259,11 @@ public class OTPAuthURIBuilder {
      * @throws NullPointerException
      *             if {@code label} {@code null}.
      * @throws IllegalArgumentException
-     *             <ul>
-     *             <li>if the {@code label}'s account name segment is missing or empty.</li>
-     *             <li>if the {@code label}'s account name segment contains a literal colon character.</li>
-     *             <li>if the {@code label}'s issuer prefix segment is present, and is an empty string (consists entirely of " " characters).</li>
-     *             </ul>
+     *             if the {@code label}'s account name segment is missing or empty.
+     * @throws IllegalArgumentException 
+     *             if the {@code label}'s account name segment contains a literal colon character.
+     * @throws IllegalArgumentException 
+     *             if the {@code label}'s issuer prefix segment is present, and is an empty string (consists entirely of " " characters).
      * 
      * @return this {@code OTPAuthURIBuilder} instance initialized with the specified {@code label}.
      */
@@ -291,8 +295,8 @@ public class OTPAuthURIBuilder {
      * of the label. If both issuer parameter and issuer label prefix are present, 
      * they MUST be equal.
      * <p>
-     * Even though this parameter is optional, it is <b>STRONGLY
-     * RECOMMEDNDED</b> that it be set along with the issuer label prefix.
+     * Even though this parameter is optional, it is <strong>STRONGLY
+     * RECOMMEDNDED</strong> that it be set along with the issuer label prefix.
      * <p>
      * Valid values corresponding to the following label prefix examples would
      * be:
@@ -305,7 +309,7 @@ public class OTPAuthURIBuilder {
      * issuer is {@code "Big%20Corporation"} (URL-encoded according to RFC 3986)</li>
      * </ul>
      * <p>
-     * <b>Side note:</b> Older Google Authenticator implementations ignore the issuer parameter
+     * <strong>Side note:</strong> Older Google Authenticator implementations ignore the issuer parameter
      * and rely upon the issuer label prefix to disambiguate accounts. Newer
      * implementations will use the issuer parameter for internal
      * disambiguation, it will not be displayed to the user. We recommend using

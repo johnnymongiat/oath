@@ -15,8 +15,9 @@ import com.google.common.io.BaseEncoding;
 /**
  * A Time-based One-time Password (TOTP) builder.
  * <p>
- * This is an implementation of the OATH TOTP algorithm as described by RFC
- * 6238. This implementation supports numeric-only TOTP values ranging from size
+ * This is an implementation of the OATH TOTP algorithm as described by
+ * <a href="https://tools.ietf.org/html/rfc6238">RFC 6238</a>. This 
+ * implementation supports numeric-only TOTP values ranging from size
  * 6 to 8 (inclusive).
  * </p>
  * <p>
@@ -49,11 +50,11 @@ import com.google.common.io.BaseEncoding;
  * @author Johan Rydell, PortWise, Inc.
  * @author Johnny Mongiat
  * 
- * @see http://tools.ietf.org/html/rfc6238
+ * @see <a href="https://tools.ietf.org/html/rfc6238">RFC 6238</a>
  */
 public final class TOTPBuilder {
 
-    /** The default time step size (30 seconds). */
+    /** The default time step size in milliseconds (30000 milliseconds == 30 seconds). */
     public static final long DEFAULT_TIME_STEP = TimeUnit.SECONDS.toMillis(30);
 
     /** The default number of digits the TOTP value contains. */
