@@ -29,7 +29,7 @@ import com.lochbridge.oath.otp.keyprovisioning.OTPKey.OTPType;
  * String issuer = "Acme Corporation";
  * String label = issuer + ":Alice Smith";
  * OTPAuthURI uri = OTPAuthURIBuilder.fromKey(new OTPKey(secret, OTPType.TOTP)).label(label).issuer(issuer).digits(6).timeStep(30000L).build();
- * // Prints "otpauth://totp/Acme%20Corporation:Alice%20Smith?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&issuer=Acme%20Corporation&digits=6&period=30"
+ * // Prints "otpauth://totp/Acme%20Corporation:Alice%20Smith?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&amp;issuer=Acme%20Corporation&amp;digits=6&amp;period=30"
  * System.out.println(uri.toUriString());
  * 
  * OTPAuthURI uriExample2 = OTPAuthURIBuilder.fromUriString(uri.toUriString()).build();
@@ -130,8 +130,7 @@ public class OTPAuthURIBuilder {
      *             (see {@link OTPAuthURIBuilder#counter(long)}).
      * @throws IllegalArgumentException 
      *             if {@code uri} is TOTP-based and the period parameter (and/or value) 
-     *             is missing, or invalid numerical format, or out of the acceptable range 
-     *             (see {@link OTPAuthURIBuilder#period(long)}).
+     *             is missing, or invalid numerical format, or out of the acceptable range
      */
     public static OTPAuthURIBuilder fromUriString(String uri) {
         Preconditions.checkNotNull(uri);
@@ -377,7 +376,7 @@ public class OTPAuthURIBuilder {
      *         specified counter.
      *         
      * @throws IllegalArgumentException
-     *             if {@code counter} is < 0.
+     *             if {@code counter} is {@literal <} 0.
      */
     public OTPAuthURIBuilder counter(long counter) {
         Preconditions.checkArgument(counter >= 0);
@@ -399,7 +398,7 @@ public class OTPAuthURIBuilder {
      *         specified timeStep.
      * 
      * @throws IllegalArgumentException
-     *             if {@code timeStep} is <= 0.
+     *             if {@code timeStep} is {@literal <=} 0.
      */
     public OTPAuthURIBuilder timeStep(long timeStep) {
         Preconditions.checkArgument(timeStep > 0);

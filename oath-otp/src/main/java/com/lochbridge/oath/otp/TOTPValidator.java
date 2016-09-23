@@ -87,7 +87,7 @@ public final class TOTPValidator {
      * @return a new {@link TOTPValidator} instance.
      * 
      * @throws IllegalArgumentException
-     *             if {@code window} is < 0.
+     *             if {@code window} is {@literal <} 0.
      */
     public static TOTPValidator window(int window) {
         return new TOTPValidator(window);

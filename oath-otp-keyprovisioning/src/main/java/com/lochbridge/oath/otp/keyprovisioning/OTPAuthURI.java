@@ -11,7 +11,7 @@ import com.lochbridge.oath.otp.keyprovisioning.OTPKey.OTPType;
 /**
  * An immutable class representing an OTP Auth URI (as per the 
  * <a href="https://code.google.com/p/google-authenticator/wiki/KeyUriFormat">Google Authenticator URI format</a>):
- * <pre>otpauth://{type}/{label}?secret={secret}&issuer={issuer}&digits={digits}&counter={counter}&period={period}</pre>
+ * <pre>otpauth://{type}/{label}?secret={secret}&amp;issuer={issuer}&amp;digits={digits}&amp;counter={counter}&amp;period={period}</pre>
  * <ul>
  * <li>{@code type}: The OTP type, either "hotp" or "totp".</li>
  * <li>{@code label}: The label used to identify which account the underlying key is associated with. 
@@ -32,7 +32,7 @@ import com.lochbridge.oath.otp.keyprovisioning.OTPKey.OTPType;
  * String issuer = "Acme Corporation";
  * String label = issuer + ":Alice Smith";
  * OTPAuthURI uri = OTPAuthURIBuilder.fromKey(new OTPKey(secret, OTPType.TOTP)).label(label).issuer(issuer).digits(6).timeStep(30000L).build();
- * // Prints "otpauth://totp/Acme%20Corporation:Alice%20Smith?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&issuer=Acme%20Corporation&digits=6&period=30"
+ * // Prints "otpauth://totp/Acme%20Corporation:Alice%20Smith?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&amp;issuer=Acme%20Corporation&amp;digits=6&amp;period=30"
  * System.out.println(uri.toUriString());
  * </pre>
  */
@@ -241,7 +241,7 @@ public class OTPAuthURI {
      * the individual components were themselves decoded/plain-text when this instance was built (this is a prerequisite). 
      * <p>
      * The URI conforms to the following format:
-     * <pre>otpauth://{type}/{label}?secret={secret}&issuer={issuer}&digits={digits}&counter={counter}&period={period}</pre>
+     * <pre>otpauth://{type}/{label}?secret={secret}&amp;issuer={issuer}&amp;digits={digits}&amp;counter={counter}&amp;period={period}</pre>
      * <ul>
      * <li>{@code type}: The OTP type, either "hotp" or "totp".</li>
      * <li>{@code label}: The label used to identify which account the underlying key is associated with. 
@@ -311,7 +311,7 @@ public class OTPAuthURI {
      * <li>The unreserved characters ".", "-", "~", and "_" remain the same.
      * <li>The additional "pchar" characters "@" and ":" remain the same.
      * <li>The sub-delimiters "!", "$", "'", "(", ")", "*", ",", and ";" remain the same.
-     * ('+', '&' and '=' are excluded)
+     * ('+', '&amp;' and '=' are excluded)
      * <li>The additional "query" characters "/", and "?" remain the same.
      * <li>The space character " " is converted into %20.
      * <li>All other characters are converted into one or more bytes using UTF-8
