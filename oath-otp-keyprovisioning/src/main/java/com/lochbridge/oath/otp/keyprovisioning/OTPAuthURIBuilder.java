@@ -131,6 +131,7 @@ public class OTPAuthURIBuilder {
      * @throws IllegalArgumentException 
      *             if {@code uri} is TOTP-based and the period parameter (and/or value) 
      *             is missing, or invalid numerical format, or out of the acceptable range
+     *             (see {@link OTPAuthURIBuilder#timeStep(long)}).
      */
     public static OTPAuthURIBuilder fromUriString(String uri) {
         Preconditions.checkNotNull(uri);
