@@ -112,7 +112,7 @@ public final class TOTPBuilder {
      *         {@code timeStep} size.
      * 
      * @throws IllegalArgumentException
-     *             if {@code timeStep} is <= 0.
+     *             if {@code timeStep} is {@literal <=} 0.
      */
     public TOTPBuilder timeStep(long timeStep) {
         Preconditions.checkArgument(timeStep > 0);
@@ -163,10 +163,10 @@ public final class TOTPBuilder {
 
     /**
      * Returns this {@code TOTPBuilder} instance initialized with the
-     * {@link HmacShaAlgorithm.HMAC_SHA_1}.
+     * {@link HmacShaAlgorithm#HMAC_SHA_1}.
      * 
      * @return this {@code TOTPBuilder} instance initialized with the
-     *         {@link HmacShaAlgorithm.HMAC_SHA_1}.
+     *         {@link HmacShaAlgorithm#HMAC_SHA_1}.
      */
     public TOTPBuilder hmacSha1() {
         return hmacSha(HmacShaAlgorithm.HMAC_SHA_1);
@@ -174,10 +174,10 @@ public final class TOTPBuilder {
 
     /**
      * Returns this {@code TOTPBuilder} instance initialized with the
-     * {@link HmacShaAlgorithm.HMAC_SHA_256}.
+     * {@link HmacShaAlgorithm#HMAC_SHA_256}.
      * 
      * @return this {@code TOTPBuilder} instance initialized with the
-     *         {@link HmacShaAlgorithm.HMAC_SHA_256}.
+     *         {@link HmacShaAlgorithm#HMAC_SHA_256}.
      */
     public TOTPBuilder hmacSha256() {
         return hmacSha(HmacShaAlgorithm.HMAC_SHA_256);
@@ -185,10 +185,10 @@ public final class TOTPBuilder {
 
     /**
      * Returns this {@code TOTPBuilder} instance initialized with the
-     * {@link HmacShaAlgorithm.HMAC_SHA_512}.
+     * {@link HmacShaAlgorithm#HMAC_SHA_512}.
      * 
      * @return this {@code TOTPBuilder} instance initialized with the
-     *         {@link HmacShaAlgorithm.HMAC_SHA_512}.
+     *         {@link HmacShaAlgorithm#HMAC_SHA_512}.
      */
     public TOTPBuilder hmacSha512() {
         return hmacSha(HmacShaAlgorithm.HMAC_SHA_512);
@@ -213,12 +213,12 @@ public final class TOTPBuilder {
      * configuration/generation calls.
      * 
      * @param time
-     *            the time (in milliseconds) (must be >= 0)
+     *            the time (in milliseconds) (must be {@literal >= 0})
      * 
      * @return a Time-based One-time Password {@link TOTP} instance.
      * 
      * @throws IllegalArgumentException
-     *             if {@code time} < 0.
+     *             if {@code time} {@literal <} 0.
      */
     public TOTP build(long time) {
         Preconditions.checkArgument(time >= 0);

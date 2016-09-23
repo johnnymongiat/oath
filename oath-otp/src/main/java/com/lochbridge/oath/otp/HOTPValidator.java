@@ -97,7 +97,7 @@ public final class HOTPValidator {
      * @return a new {@link HOTPValidator} instance.
      * 
      * @throws IllegalArgumentException
-     *             if {@code lookAheadWindow} is < 1.
+     *             if {@code lookAheadWindow} is {@literal <} 1.
      */
     public static HOTPValidator lookAheadWindow(int lookAheadWindow) {
         return new HOTPValidator(lookAheadWindow);

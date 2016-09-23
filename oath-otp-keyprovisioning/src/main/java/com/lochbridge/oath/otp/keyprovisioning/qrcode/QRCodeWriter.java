@@ -97,7 +97,7 @@ public class QRCodeWriter {
     /**
      * Returns this {@code QRCodeWriter} instance initialized with the
      * specified {@link ErrorCorrectionLevel}. The default is
-     * {@link ErrorCorrectionLevel.L}.
+     * {@link ErrorCorrectionLevel#L}.
      * 
      * @param errorCorrectionLevel
      *            the error correction level.

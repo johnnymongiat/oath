@@ -94,7 +94,7 @@ public final class HOTPBuilder {
      *         {@code movingFactor}.
      * 
      * @throws IllegalArgumentException
-     *             if {@code movingFactor} is < 0.
+     *             if {@code movingFactor} is {@literal <} 0.
      */
     public HOTPBuilder movingFactor(long movingFactor) {
         Preconditions.checkArgument(movingFactor >= 0);
